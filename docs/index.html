@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ClaudeCodeUsage — See your Claude Code usage, live, from your Mac</title>
+<meta name="description" content="A native macOS dashboard that visualizes your local Claude Code usage — sessions, turns, tokens, prompt cache and estimated cost, with model and date-range filters and a daily usage chart. Free & open-source (MIT), reads local transcripts only.">
+<meta property="og:title" content="ClaudeCodeUsage">
+<meta property="og:description" content="Sessions, turns, tokens, cache and estimated cost — your Claude Code usage, visible at a glance, from a native macOS dashboard.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%2310b981'/%3E%3Cpath d='M22 64 L40 46 L54 58 L78 32' stroke='white' stroke-width='8' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='78' cy='32' r='7' fill='white'/%3E%3C/svg%3E">
+<style>
+  :root{
+    --bg:#0a0f0d; --bg2:#0d1512; --panel:#111b17; --line:#1f312a;
+    --txt:#e6f1ec; --muted:#93a8a0; --faint:#6b827a;
+    --accent:#34d399; --accent2:#10b981; --accent-soft:rgba(52,211,153,.14);
+    --maxw:1100px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--txt);font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,"Cascadia Code",monospace}
+
+  nav{position:sticky;top:0;z-index:20;backdrop-filter:saturate(160%) blur(12px);background:rgba(10,15,13,.72);border-bottom:1px solid var(--line)}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:62px}
+  .brand{display:flex;align-items:center;gap:11px;font-weight:750;letter-spacing:-.2px}
+  .logo{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#10b981,#34d399);display:grid;place-items:center;box-shadow:0 4px 14px rgba(16,185,129,.35)}
+  .nav-links{display:flex;gap:24px;align-items:center;color:var(--muted);font-size:14.5px}
+  .nav-links a:hover{color:var(--txt)}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:11px;font-weight:650;font-size:15px;transition:transform .12s ease,box-shadow .12s ease,background .12s}
+  .btn:hover{transform:translateY(-1px)}
+  .btn-primary{background:linear-gradient(135deg,#10b981,#34d399);color:#04130d;box-shadow:0 6px 22px rgba(16,185,129,.32)}
+  .btn-ghost{border:1px solid var(--line);color:var(--txt);background:transparent}
+  .btn-ghost:hover{border-color:#2c453b;background:var(--panel)}
+  .btn-sm{padding:8px 15px;font-size:14px;border-radius:9px}
+
+  header{padding:78px 0 36px;background:radial-gradient(820px 380px at 78% -8%,rgba(16,185,129,.16),transparent 62%)}
+  .hero-grid{display:grid;grid-template-columns:1.02fr 1fr;gap:48px;align-items:center}
+  .pill{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--panel);color:var(--muted);padding:6px 13px;border-radius:999px;font-size:13px;margin-bottom:22px}
+  .pill b{color:var(--accent)}
+  h1{font-size:clamp(36px,5.4vw,57px);line-height:1.05;font-weight:820;letter-spacing:-1.6px}
+  h1 .grad{background:linear-gradient(120deg,#6ee7b7,#10b981);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .sub{max-width:540px;margin:20px 0 0;font-size:clamp(16px,2vw,19px);color:var(--muted)}
+  .cta{display:flex;gap:13px;flex-wrap:wrap;margin:30px 0 14px}
+  .meta{color:var(--faint);font-size:13px;display:flex;flex-wrap:wrap;gap:6px 14px}
+  .meta b{color:var(--muted);font-weight:600}
+
+  /* signature dashboard mock */
+  .winwrap{filter:drop-shadow(0 30px 60px rgba(0,0,0,.55))}
+  .win{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--bg2)}
+  .titlebar{display:flex;align-items:center;gap:8px;padding:11px 14px;background:#0c1411;border-bottom:1px solid var(--line)}
+  .dot{width:11px;height:11px;border-radius:50%}
+  .dot.r{background:#ff5f57}.dot.y{background:#febc2e}.dot.g{background:#28c840}
+  .titlebar .name{margin-left:8px;font-size:12.5px;color:var(--faint)}
+  .titlebar .name b{color:var(--muted);font-weight:600}
+  .dash{padding:18px}
+  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px}
+  .kpi .n{font-size:20px;font-weight:800;letter-spacing:-.6px;color:var(--accent)}
+  .kpi .l{font-size:11px;color:var(--faint);margin-top:2px;text-transform:uppercase;letter-spacing:.4px}
+  .chartlabel{font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+  .chart{display:flex;align-items:flex-end;gap:7px;height:84px;padding:0 2px;margin-bottom:16px}
+  .bar{flex:1;background:linear-gradient(180deg,#34d399,#10b981);border-radius:5px 5px 2px 2px;position:relative;min-height:6px}
+  .bar span{position:absolute;top:-15px;left:0;right:0;text-align:center;font-size:9.5px;color:var(--muted)}
+  .cmds{display:flex;flex-direction:column;gap:7px}
+  .cmd{display:flex;justify-content:space-between;align-items:center;font:12px/1 ui-monospace,Menlo,monospace;color:var(--muted);padding:7px 10px;background:var(--panel);border:1px solid var(--line);border-radius:8px}
+  .cmd b{color:var(--accent);font-weight:700}
+
+  section{padding:74px 0;border-top:1px solid var(--line)}
+  .eyebrow{color:var(--accent);font-weight:700;font-size:12.5px;letter-spacing:1.4px;text-transform:uppercase}
+  .center{text-align:center}.center .eyebrow{display:block}
+  h2{font-size:clamp(27px,3.7vw,38px);font-weight:800;letter-spacing:-.7px;margin:9px 0 12px}
+  .lead{color:var(--muted);max-width:620px;font-size:17px}
+  .center .lead{margin-left:auto;margin-right:auto}
+
+  .grid{display:grid;gap:16px;margin-top:42px}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;transition:border-color .15s,transform .15s}
+  .card:hover{border-color:#2c453b;transform:translateY(-2px)}
+  .card h3{font-size:16.5px;margin-bottom:5px;letter-spacing:-.2px}
+  .card p{color:var(--muted);font-size:14.5px}
+  .ico{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent);font-size:21px;margin-bottom:14px}
+
+  .why{background:var(--bg2);border:1px solid var(--line);border-radius:18px;padding:40px;display:grid;grid-template-columns:1.1fr 1fr;gap:40px;align-items:center;margin-top:8px}
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:18px}
+  .stat .k{font-size:28px;font-weight:820;letter-spacing:-1px;color:var(--accent)}
+  .stat .v{color:var(--muted);font-size:13.5px;margin-top:2px}
+
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:42px;counter-reset:s}
+  .step{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;position:relative}
+  .step::before{counter-increment:s;content:counter(s);position:absolute;top:-14px;left:22px;width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#10b981,#34d399);color:#04130d;font-weight:800;display:grid;place-items:center;font-size:15px}
+  .step h3{margin:6px 0 5px;font-size:16px}
+  .step p{color:var(--muted);font-size:14.5px}
+  .step code{background:#06100c;color:var(--accent);border-radius:6px;padding:2px 7px;font:12.5px/1.4 ui-monospace,Menlo,monospace}
+
+  .final{text-align:center;background:radial-gradient(620px 280px at 50% 120%,rgba(16,185,129,.16),transparent 66%)}
+  .final .cta{justify-content:center}
+  footer{border-top:1px solid var(--line);padding:34px 0;color:var(--muted);font-size:14px;text-align:center}
+  footer a{color:var(--accent);font-weight:600}
+  code{background:#06100c;border:1px solid var(--line);border-radius:6px;padding:2px 7px;font:13px/1.4 ui-monospace,Menlo,monospace;color:var(--accent)}
+
+  @media(max-width:880px){.hero-grid,.why{grid-template-columns:1fr;gap:30px}.why{padding:28px}.g3,.steps{grid-template-columns:1fr}.nav-links a:not(.btn){display:none}}
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <a class="brand" href="#top"><span class="logo"><svg width="19" height="19" viewBox="0 0 100 100"><path d="M22 64 L40 46 L54 58 L78 32" stroke="#04130d" stroke-width="9" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="78" cy="32" r="7" fill="#04130d"/></svg></span>ClaudeCodeUsage</a>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#why">Why</a>
+    <a href="#install">Install</a>
+    <a href="https://github.com/vincentlauriat/ClaudeCodeUsage">GitHub</a>
+    <a class="btn btn-primary btn-sm" href="https://github.com/vincentlauriat/ClaudeCodeUsage/releases/latest">Download</a>
+  </div>
+</div></nav>
+
+<header id="top"><div class="wrap">
+  <div class="hero-grid">
+    <div>
+      <span class="pill">📊 Built for <b>Claude Code</b> — sessions, tokens, cache & cost</span>
+      <h1>Your Claude Code usage,<br><span class="grad">visible at a glance.</span></h1>
+      <p class="sub">Claude Code quietly writes usage data to local transcripts on every turn. ClaudeCodeUsage turns that into a dashboard you can actually read — sessions, turns, tokens, prompt cache and estimated cost, filterable by model and date range, with a daily usage chart.</p>
+      <div class="cta">
+        <a class="btn btn-primary" href="https://github.com/vincentlauriat/ClaudeCodeUsage/releases/latest">⬇︎ Download for macOS</a>
+        <a class="btn btn-ghost" href="https://github.com/vincentlauriat/ClaudeCodeUsage">View on GitHub</a>
+      </div>
+      <p class="meta"><b>Free &amp; open-source (MIT)</b> · macOS 14+ · Reads local transcripts only, nothing leaves your Mac</p>
+    </div>
+
+    <div class="winwrap">
+      <div class="win" role="img" aria-label="ClaudeCodeUsage dashboard: stat cards for sessions, turns, tokens and cost, plus a daily usage chart">
+        <div class="titlebar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="name"><b>Claude Code Usage</b> — 30d</span></div>
+        <div class="dash">
+          <div class="kpis">
+            <div class="kpi"><div class="n">63</div><div class="l">Sessions</div></div>
+            <div class="kpi"><div class="n">2.2K</div><div class="l">Turns</div></div>
+            <div class="kpi"><div class="n">$227</div><div class="l">Est. cost</div></div>
+          </div>
+          <div class="chartlabel">Last 30 days · daily tokens</div>
+          <div class="chart" aria-hidden="true">
+            <div class="bar" style="height:28%"></div>
+            <div class="bar" style="height:44%"></div>
+            <div class="bar" style="height:20%"></div>
+            <div class="bar" style="height:62%"></div>
+            <div class="bar" style="height:38%"></div>
+            <div class="bar" style="height:90%"></div>
+            <div class="bar" style="height:55%"></div>
+          </div>
+          <div class="cmds">
+            <div class="cmd"><span>claude-opus-4-8</span><b>21.9M in</b></div>
+            <div class="cmd"><span>claude-sonnet-5</span><b>31.1M out</b></div>
+            <div class="cmd"><span>cache read</span><b>5.19B</b></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div></header>
+
+<section id="features"><div class="wrap">
+  <div class="center">
+    <p class="eyebrow">## features</p>
+    <h2>Everything Claude Code tracks, made visible</h2>
+    <p class="lead">A tiny native app that reads the JSONL transcripts Claude Code already writes to <code class="mono">~/.claude/projects</code>, and turns them into a dashboard.</p>
+  </div>
+  <div class="grid g3">
+    <div class="card"><div class="ico">🔒</div><h3>Local &amp; private</h3><p>Reads your local transcripts only. Nothing is ever uploaded — the app has no network calls beyond checking for its own updates.</p></div>
+    <div class="card"><div class="ico">📈</div><h3>Daily usage chart</h3><p>A stacked chart of input, output, cache read and cache creation tokens, per day.</p></div>
+    <div class="card"><div class="ico">🧮</div><h3>Estimated cost</h3><p>Approximate USD cost per model family, computed from your actual token usage.</p></div>
+    <div class="card"><div class="ico">🎚️</div><h3>Model &amp; date filters</h3><p>Slice by model — Opus, Sonnet, Haiku — and by range: today, this week, 30d, 90d, all time.</p></div>
+    <div class="card"><div class="ico">♻️</div><h3>Auto-refresh</h3><p>Rescans every 30 seconds, incrementally — only newly appended transcript bytes are read.</p></div>
+    <div class="card"><div class="ico">⚙️</div><h3>Native SwiftUI</h3><p>A small, fast, native macOS app — no Electron, no background daemon.</p></div>
+  </div>
+</div></section>
+
+<section id="why"><div class="wrap">
+  <div class="why">
+    <div>
+      <p class="eyebrow">// why it exists</p>
+      <h2 style="text-align:left">Numbers Claude Code already has, finally visible</h2>
+      <p class="lead">Claude Code logs token usage on every turn, but there's no built-in way to see the totals. ClaudeCodeUsage sits read-only on top of those transcripts — across every local project — so your sessions, tokens and estimated spend become a single glanceable dashboard.</p>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="k">Read-only</div><div class="v">Never writes to Claude Code's data</div></div>
+      <div class="stat"><div class="k">All projects</div><div class="v">Aggregates usage across every local repo</div></div>
+      <div class="stat"><div class="k">Incremental</div><div class="v">Only re-reads appended transcript bytes</div></div>
+      <div class="stat"><div class="k">Native</div><div class="v">SwiftUI + Swift Charts</div></div>
+    </div>
+  </div>
+</div></section>
+
+<section id="install"><div class="wrap">
+  <div class="center">
+    <p class="eyebrow">get started</p>
+    <h2>Up and running in a minute</h2>
+    <p class="lead">ClaudeCodeUsage reads the transcripts Claude Code already writes locally — there's nothing else to configure.</p>
+  </div>
+  <div class="steps">
+    <div class="step"><h3>Have Claude Code installed</h3><p>ClaudeCodeUsage visualizes its local usage data, so use Claude Code at least once first.</p></div>
+    <div class="step"><h3>Download &amp; install</h3><p>Grab the latest <code>.dmg</code> and drag <code>ClaudeCodeUsage.app</code> into <code>/Applications</code>.</p></div>
+    <div class="step"><h3>Launch</h3><p>Open it — your usage dashboard populates from your local transcripts within a few seconds.</p></div>
+  </div>
+</div></section>
+
+<section class="final"><div class="wrap">
+  <p class="eyebrow">ready?</p>
+  <h2>See what Claude Code is really costing you</h2>
+  <p class="lead" style="margin:0 auto 6px">Free, open-source and native. macOS 14 Sonoma or later.</p>
+  <div class="cta">
+    <a class="btn btn-primary" href="https://github.com/vincentlauriat/ClaudeCodeUsage/releases/latest">⬇︎ Download for macOS</a>
+    <a class="btn btn-ghost" href="https://github.com/vincentlauriat/ClaudeCodeUsage#readme">Read the docs</a>
+  </div>
+</div></section>
+
+<footer><div class="wrap">
+  ClaudeCodeUsage · MIT License · © 2026 Vincent Lauriat ·
+  <a href="https://github.com/vincentlauriat/ClaudeCodeUsage">github.com/vincentlauriat/ClaudeCodeUsage</a>
+  · <a href="https://lauriat.fr/outils/claudecodeusage/">lauriat.fr</a>
+</div></footer>
+
+</body>
+</html>

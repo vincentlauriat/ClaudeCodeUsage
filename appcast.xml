@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+  <channel>
+    <title>ClaudeCodeUsage</title>
+    <link>https://raw.githubusercontent.com/vincentlauriat/ClaudeCodeUsage/main/appcast.xml</link>
+    <description>ClaudeCodeUsage release feed</description>
+    <language>en</language>
+    <item>
+      <title>v1.0.0</title>
+      <pubDate>Sun, 05 Jul 2026 21:06:13 +0200</pubDate>
+      <sparkle:version>1</sparkle:version>
+      <sparkle:shortVersionString>1.0.0</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <sparkle:releaseNotesLink>https://github.com/vincentlauriat/ClaudeCodeUsage/releases/tag/v1.0.0</sparkle:releaseNotesLink>
+      <enclosure
+        url="https://github.com/vincentlauriat/ClaudeCodeUsage/releases/download/v1.0.0/ClaudeCodeUsage-1.0.0.dmg"
+        type="application/octet-stream"
+        sparkle:edSignature="aT5iT3Z9V5beuKiu0lYmRZ5Y4NJfSUKKVn0HPIcubT458SLTBrD9RzA4dnP2ubFVCHGNCK2ApvFxJrkP/P56DA==" length="1110170" />
+    </item>
+  </channel>
+</rss>

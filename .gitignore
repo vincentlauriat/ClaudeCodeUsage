@@ -11,5 +11,9 @@ build/
 DerivedData/
 .build/
 
+# Release artifacts (published as GitHub Release assets, not committed)
+*.dmg
+.sparkle-tools/
+
 # macOS
 .DS_Store
