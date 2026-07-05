@@ -62,9 +62,29 @@ hundreds of thousands) applied to a *single* stacked bar — which has no consis
 meaning. The MVP renders one consistent Y axis (auto-formatted K/M) for all four stacked series.
 A true dual-axis overlay can be added later if requested.
 
-## Out of scope (MVP)
-- Code signing / notarization / DMG packaging (standard repo pipeline, only on explicit request)
-- Sparkle auto-update
+## Release pipeline (signing, notarization, Sparkle)
+`Scripts/release.sh` (adapted from the sibling project RTKInfos' template) does, given a version:
+1. Checks `project.yml`'s `MARKETING_VERSION` matches, regenerates the Xcode project.
+2. Builds Release with `CODE_SIGNING_ALLOWED=NO` (works around a macOS Sequoia+ xattr that
+   breaks `codesign --force` right after an Xcode build), then stages the built app via
+   `ditto --noextattr` to strip those attributes.
+3. Codesigns depth-first with Hardened Runtime: `Sparkle.framework`'s nested `Autoupdate`,
+   `Downloader.xpc`, `Installer.xpc`, `Updater.app`, the framework itself, then the app.
+4. Packages a DMG with a Finder icon-view layout (app + `/Applications` alias).
+5. Submits to Apple's notary service (`xcrun notarytool`, keychain profile
+   `AppliMacVincentGithub`, shared across Vincent's apps) and staples the ticket.
+6. Signs the DMG with the Sparkle EdDSA key (`sign_update --account MarkdownViewer` — this app
+   reuses the key shared across Vincent's macOS apps rather than minting its own) and writes
+   `appcast.xml` at the repo root, served via `raw.githubusercontent.com`.
+
+`SUFeedURL`/`SUPublicEDKey` live in `Info.plist`; `AppDelegate` (via
+`@NSApplicationDelegateAdaptor`) wires `SPUStandardUpdaterController` and a "Check for
+Updates…" menu item. **Never regenerate the Sparkle key** — it would break auto-update for every
+app sharing it.
+
+## Out of scope
 - Scan-cache persistence across app launches
 - Exact dual-axis chart rendering
 - In-app editable pricing table
+- A Sparkle EdDSA key dedicated to this app (currently shares "MarkdownViewer"'s, an explicit
+  choice — trades trust isolation between apps for simpler key management)

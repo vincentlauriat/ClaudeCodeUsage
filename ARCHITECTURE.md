@@ -65,9 +65,30 @@ Input/Output en centaines de milliers) appliqués à une *même* pile de barres 
 sens mathématique cohérent. Le MVP utilise un axe Y unique (auto-formaté K/M) pour les 4 séries
 empilées. Un vrai double axe pourra être ajouté plus tard sur demande.
 
-## Hors scope (MVP)
-- Signature / notarisation / packaging DMG (pipeline standard du repo, sur demande explicite)
-- Auto-update Sparkle
+## Pipeline de release (signature, notarisation, Sparkle)
+`Scripts/release.sh` (adapté du template du projet voisin RTKInfos) fait, pour une version donnée :
+1. Vérifie que `MARKETING_VERSION` dans `project.yml` correspond, régénère le projet Xcode.
+2. Build Release avec `CODE_SIGNING_ALLOWED=NO` (contourne un xattr de macOS Sequoia+ qui casse
+   `codesign --force` juste après un build Xcode), puis stage l'app via `ditto --noextattr` pour
+   purger ces attributs.
+3. Signe en profondeur avec Hardened Runtime : `Autoupdate`, `Downloader.xpc`, `Installer.xpc`,
+   `Updater.app` imbriqués dans `Sparkle.framework`, puis le framework lui-même, puis l'app.
+4. Packages un DMG avec mise en page Finder (app + alias `/Applications`).
+5. Soumet à la notarisation Apple (`xcrun notarytool`, profil trousseau `AppliMacVincentGithub`,
+   partagé entre les apps de Vincent) et staple le ticket.
+6. Signe le DMG avec la clé Sparkle EdDSA (`sign_update --account MarkdownViewer` — cette app
+   réutilise la clé partagée entre les apps macOS de Vincent plutôt que d'en générer une propre)
+   et écrit `appcast.xml` à la racine du repo, servi via `raw.githubusercontent.com`.
+
+`SUFeedURL`/`SUPublicEDKey` vivent dans `Info.plist` ; `AppDelegate` (via
+`@NSApplicationDelegateAdaptor`) câble `SPUStandardUpdaterController` et un item de menu "Check
+for Updates…". **Ne jamais régénérer la clé Sparkle** — cela casserait l'auto-update de toutes
+les apps qui la partagent.
+
+## Hors scope
 - Persistance du cache de scan entre lancements
 - Rendu exact du double axe
 - Table de tarifs éditable depuis l'UI
+- Une clé Sparkle EdDSA dédiée à cette app (elle partage actuellement celle de
+  "MarkdownViewer", choix explicite — sacrifie l'isolation de confiance entre apps au profit
+  d'une gestion de clé plus simple)
