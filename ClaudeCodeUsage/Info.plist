@@ -30,5 +30,17 @@
 	<string>NSApplication</string>
 	<key>NSMainStoryboardFile</key>
 	<string></string>
+	<!-- Sparkle auto-update: reuses the "MarkdownViewer" EdDSA key shared across
+	     Vincent's macOS apps. NEVER regenerate or change SUPublicEDKey. -->
+	<key>SUFeedURL</key>
+	<string>https://raw.githubusercontent.com/vincentlauriat/ClaudeCodeUsage/main/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>9PD2SBwLL4XoycyAGzaE+gO7ctuxSfuFMMajiZdXhXQ=</string>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
+	<key>SUScheduledCheckInterval</key>
+	<integer>86400</integer>
+	<key>SUAutomaticallyUpdate</key>
+	<false/>
 </dict>
 </plist>
