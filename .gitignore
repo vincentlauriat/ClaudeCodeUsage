@@ -1,0 +1,15 @@
+# Docs de suivi (maintenus localement, non versionnés)
+COMMANDS.md
+MEMORY.md
+CHANGES.md
+TODOS.md
+PLAN.md
+
+# Xcode / xcodegen
+*.xcodeproj
+build/
+DerivedData/
+.build/
+
+# macOS
+.DS_Store
