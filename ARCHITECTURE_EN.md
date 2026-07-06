@@ -2,35 +2,45 @@
 
 ## Overview
 Native macOS SwiftUI app that scans local Claude Code JSONL transcripts and renders a usage
-dashboard (sessions, turns, tokens, cache, estimated cost, daily stacked bar chart).
+dashboard (sessions, turns, tokens, cache, estimated cost, daily stacked bar chart), with a
+project filter, a cost breakdown by project/agent/skill, and a named sessions list with detail.
 
 ## Data source
 Claude Code writes one append-only JSONL transcript per session at:
 ```
 ~/.claude/projects/<encoded-project-path>/<sessionId>.jsonl
+~/.claude/projects/<encoded-project-path>/<sessionId>/subagents/agent-*.jsonl   (sub-agents)
 ```
 Lines with `type == "assistant"` and a `message.usage` object carry the token counts we need:
 `message.model`, `usage.input_tokens`, `usage.output_tokens`,
-`usage.cache_creation_input_tokens`, `usage.cache_read_input_tokens`, plus `sessionId` and
-`timestamp`. The app never writes to these files.
+`usage.cache_creation_input_tokens`, `usage.cache_read_input_tokens`, plus `sessionId`,
+`timestamp`, `cwd` (real working directory), and — only on sub-agent turns —
+`attributionAgent`/`attributionSkill`. Standalone `type: "ai-title"` lines (`{aiTitle,
+sessionId}`) and the `slug` field (present on various lines in the main session file) give each
+session a human-readable name. The app never writes to these files.
 
 ## Module layout
 ```
 ClaudeCodeUsage/
   App/ClaudeCodeUsageApp.swift      entry point, single window
   Models/
-    UsageEvent                      one assistant turn with usage
+    UsageEvent                      one assistant turn with usage (+ cwd, agent/skill attribution)
     DailyUsage                      per-day aggregate (chart)
     UsageSummary                    aggregate for stat cards
     DateRangeFilter                 Today/This Week/.../All
     ModelPricing                    per-model-family pricing table
+    SessionInfo                     a session's title/slug/cwd (metadata not on every line)
+    SessionSummary                  per-session aggregate (sessions list)
+    BreakdownDimension / BreakdownRow  breakdown by project / agent / skill
   Services/
-    TranscriptScanner               incremental scan of *.jsonl files
+    TranscriptScanner               incremental scan of *.jsonl files (events + SessionInfo)
     PricingCalculator                cost estimation from UsageEvent list
   ViewModels/
-    UsageViewModel                  filters, 30s auto-refresh, aggregation
+    UsageViewModel                  filters (model/project/range), 30s auto-refresh, aggregation,
+                                     dimension breakdown, sessions
   Views/
-    ContentView, HeaderView, FilterBarView, StatCardView, DailyUsageChartView
+    ContentView, HeaderView, FilterBarView, StatCardView, DailyUsageChartView,
+    BreakdownView, SessionsListView, SessionDetailView
 ```
 
 ## Scanning strategy

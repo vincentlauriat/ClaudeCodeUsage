@@ -7,6 +7,13 @@ import Foundation
 /// of a given file (tracked by byte offset + mtime). Call `reset()` to force a full re-read
 /// (used by the "Rescan" button).
 actor TranscriptScanner {
+    /// Everything a scan produces: the flat event list (for stats/charts/breakdowns) plus the
+    /// session-level metadata collected along the way (for the sessions list).
+    struct ScanResult {
+        let events: [UsageEvent]
+        let sessionInfo: [String: SessionInfo]
+    }
+
     private struct FileState {
         var offset: UInt64
         var mtime: Date
@@ -14,6 +21,10 @@ actor TranscriptScanner {
     }
 
     private var fileStates: [String: FileState] = [:]
+    /// Keyed by sessionId. `ai-title`/`slug`/`cwd` don't appear on every line (unlike the fields
+    /// on `UsageEvent`), so they're accumulated separately while scanning every line type, not
+    /// just assistant turns.
+    private var sessionInfoBySessionId: [String: SessionInfo] = [:]
 
     private static let isoFormatterWithFraction: ISO8601DateFormatter = {
         let formatter = ISO8601DateFormatter()
@@ -30,10 +41,12 @@ actor TranscriptScanner {
     /// Clears all cached offsets, forcing a full re-read of every transcript on the next scan.
     func reset() {
         fileStates.removeAll()
+        sessionInfoBySessionId.removeAll()
     }
 
-    /// Scans every `.jsonl` transcript and returns the full accumulated set of usage events.
-    func scan() -> [UsageEvent] {
+    /// Scans every `.jsonl` transcript and returns the full accumulated set of usage events plus
+    /// per-session metadata (title/slug/project).
+    func scan() -> ScanResult {
         let root = FileManager.default.homeDirectoryForCurrentUser
             .appendingPathComponent(".claude/projects")
 
@@ -47,7 +60,10 @@ actor TranscriptScanner {
             }
         }
 
-        return fileStates.values.flatMap(\.events)
+        return ScanResult(
+            events: fileStates.values.flatMap(\.events),
+            sessionInfo: sessionInfoBySessionId
+        )
     }
 
     private func scanFile(at url: URL) {
@@ -90,24 +106,50 @@ actor TranscriptScanner {
 
         var newEvents: [UsageEvent] = []
         for line in text.split(separator: "\n", omittingEmptySubsequences: true) {
-            if let event = Self.parseLine(line) {
+            guard let obj = Self.parseJSON(line) else { continue }
+
+            if let event = Self.parseEvent(from: obj) {
                 newEvents.append(event)
+            }
+            if let sessionId = (obj["sessionId"] as? String) ?? (obj["session_id"] as? String) {
+                updateSessionInfo(sessionId: sessionId, obj: obj)
             }
         }
 
         fileStates[path] = FileState(offset: newOffset, mtime: mtime, events: priorEvents + newEvents)
     }
 
-    private static func parseLine(_ line: Substring) -> UsageEvent? {
-        guard let data = line.data(using: .utf8),
-              let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              (obj["type"] as? String) == "assistant",
+    /// Merges any of `title`/`slug`/`cwd` found on this line into that session's accumulated
+    /// info. Called for every line type (not just assistant turns), since a human-readable name
+    /// only ever appears on a standalone `type: "ai-title"` line.
+    private func updateSessionInfo(sessionId: String, obj: [String: Any]) {
+        var info = sessionInfoBySessionId[sessionId] ?? SessionInfo()
+        if (obj["type"] as? String) == "ai-title", let aiTitle = obj["aiTitle"] as? String {
+            info.title = aiTitle
+        }
+        if let slug = obj["slug"] as? String {
+            info.slug = slug
+        }
+        if let cwd = obj["cwd"] as? String {
+            info.cwd = cwd
+        }
+        sessionInfoBySessionId[sessionId] = info
+    }
+
+    private static func parseJSON(_ line: Substring) -> [String: Any]? {
+        guard let data = line.data(using: .utf8) else { return nil }
+        return try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+    }
+
+    private static func parseEvent(from obj: [String: Any]) -> UsageEvent? {
+        guard (obj["type"] as? String) == "assistant",
               let message = obj["message"] as? [String: Any],
               let usage = message["usage"] as? [String: Any],
               let model = message["model"] as? String,
               let sessionId = (obj["sessionId"] as? String) ?? (obj["session_id"] as? String),
               let timestampString = obj["timestamp"] as? String,
-              let timestamp = date(from: timestampString)
+              let timestamp = date(from: timestampString),
+              let cwd = obj["cwd"] as? String
         else { return nil }
 
         let id = (obj["uuid"] as? String) ?? (message["id"] as? String) ?? UUID().uuidString
@@ -120,7 +162,10 @@ actor TranscriptScanner {
             inputTokens: usage["input_tokens"] as? Int ?? 0,
             outputTokens: usage["output_tokens"] as? Int ?? 0,
             cacheCreationTokens: usage["cache_creation_input_tokens"] as? Int ?? 0,
-            cacheReadTokens: usage["cache_read_input_tokens"] as? Int ?? 0
+            cacheReadTokens: usage["cache_read_input_tokens"] as? Int ?? 0,
+            cwd: cwd,
+            attributionAgent: obj["attributionAgent"] as? String,
+            attributionSkill: obj["attributionSkill"] as? String
         )
     }
 

@@ -12,8 +12,11 @@ writes under `~/.claude/projects/**`.
 - **Stat cards** — Sessions, Turns, Input Tokens, Output Tokens, Cache Read, Cache Creation,
   Est. Cost
 - **Daily usage chart** — stacked bar chart of the last N days (Swift Charts)
-- **Filters** — by model, and by date range (Today / This Week / This Month / Prev Month / 7d /
-  30d / 90d / All)
+- **Filters** — by model, by project (working directory), and by date range (Today / This Week /
+  This Month / Prev Month / 7d / 30d / 90d / All)
+- **Breakdown panel** — cost/token table by Project, Agent, or Skill (switchable), sorted by cost
+- **Sessions list** — named sessions (from Claude Code's auto-generated title/slug), most recent
+  first, with a click-through detail sheet (per-model breakdown, time range)
 - **Auto-refresh** — rescans every 30s (incremental — only reads newly appended transcript
   bytes), plus a manual **Rescan** button for a full re-read
 - **Auto-update** — Sparkle-based, checks `appcast.xml` on launch and via "Check for Updates…"

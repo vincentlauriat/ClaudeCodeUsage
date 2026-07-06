@@ -25,6 +25,25 @@ struct FilterBarView: View {
             Divider().frame(height: 20)
 
             HStack(spacing: 10) {
+                Text("PROJECT")
+                    .font(.caption2)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(Theme.textSecondary)
+
+                Picker("", selection: $viewModel.selectedProject) {
+                    Text("All projects").tag(String?.none)
+                    ForEach(viewModel.availableProjects, id: \.self) { project in
+                        Text(Formatters.shortenPath(project)).tag(String?.some(project))
+                    }
+                }
+                .pickerStyle(.menu)
+                .frame(minWidth: 200)
+                .labelsHidden()
+            }
+
+            Divider().frame(height: 20)
+
+            HStack(spacing: 10) {
                 Text("RANGE")
                     .font(.caption2)
                     .fontWeight(.semibold)

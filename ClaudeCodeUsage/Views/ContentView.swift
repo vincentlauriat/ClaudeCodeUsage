@@ -19,12 +19,14 @@ struct ContentView: View {
                         dailyUsages: viewModel.dailyUsages,
                         rangeLabel: viewModel.selectedRange.rawValue
                     )
+                    BreakdownView(viewModel: viewModel)
+                    SessionsListView(viewModel: viewModel)
                 }
                 .padding(24)
             }
         }
         .background(Theme.background)
-        .frame(minWidth: 980, minHeight: 760)
+        .frame(minWidth: 980, minHeight: 1100)
     }
 
     private var statGrid: some View {
