@@ -13,6 +13,9 @@ final class UsageViewModel: ObservableObject {
     @Published private(set) var lastUpdated: Date?
     @Published private(set) var isScanning = false
     @Published private(set) var secondsUntilRefresh = UsageViewModel.autoRefreshInterval
+    @Published var pricingSettings: PricingSettings = PricingSettings.loadFromUserDefaults() {
+        didSet { pricingSettings.saveToUserDefaults() }
+    }
 
     private let scanner = TranscriptScanner()
     private var ticker: AnyCancellable?
@@ -62,7 +65,7 @@ final class UsageViewModel: ObservableObject {
                 label: key,
                 turnCount: bucket.turnCount,
                 totalTokens: bucket.tokens,
-                estimatedCostUSD: PricingCalculator.estimatedCostUSD(for: bucket.events)
+                estimatedCostUSD: PricingCalculator.estimatedCostUSD(for: bucket.events, pricing: pricingSettings)
             )
         }.sorted { $0.estimatedCostUSD > $1.estimatedCostUSD }
     }
@@ -74,8 +77,12 @@ final class UsageViewModel: ObservableObject {
             eventsBySession[event.sessionId, default: []].append(event)
         }
         return eventsBySession.compactMap { sessionId, events in
-            SessionSummary(sessionId: sessionId, events: events, info: sessionInfo[sessionId])
+            SessionSummary(sessionId: sessionId, events: events, info: sessionInfo[sessionId], pricing: pricingSettings)
         }.sorted { $0.lastSeen > $1.lastSeen }
+    }
+
+    func resetPricingToDefaults() {
+        pricingSettings = .default
     }
 
     var summary: UsageSummary {
@@ -87,7 +94,7 @@ final class UsageViewModel: ObservableObject {
         summary.outputTokens = events.reduce(0) { $0 + $1.outputTokens }
         summary.cacheReadTokens = events.reduce(0) { $0 + $1.cacheReadTokens }
         summary.cacheCreationTokens = events.reduce(0) { $0 + $1.cacheCreationTokens }
-        summary.estimatedCostUSD = PricingCalculator.estimatedCostUSD(for: events)
+        summary.estimatedCostUSD = PricingCalculator.estimatedCostUSD(for: events, pricing: pricingSettings)
         return summary
     }
 

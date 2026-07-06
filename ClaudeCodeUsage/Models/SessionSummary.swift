@@ -20,7 +20,7 @@ struct SessionSummary: Identifiable {
         inputTokens + outputTokens + cacheCreationTokens + cacheReadTokens
     }
 
-    init?(sessionId: String, events: [UsageEvent], info: SessionInfo?) {
+    init?(sessionId: String, events: [UsageEvent], info: SessionInfo?, pricing: PricingSettings) {
         guard let first = events.first else { return nil }
         self.id = sessionId
         self.displayName = info?.displayName(fallback: sessionId) ?? String(sessionId.prefix(8))
@@ -33,6 +33,6 @@ struct SessionSummary: Identifiable {
         self.outputTokens = events.reduce(0) { $0 + $1.outputTokens }
         self.cacheCreationTokens = events.reduce(0) { $0 + $1.cacheCreationTokens }
         self.cacheReadTokens = events.reduce(0) { $0 + $1.cacheReadTokens }
-        self.estimatedCostUSD = PricingCalculator.estimatedCostUSD(for: events)
+        self.estimatedCostUSD = PricingCalculator.estimatedCostUSD(for: events, pricing: pricing)
     }
 }
