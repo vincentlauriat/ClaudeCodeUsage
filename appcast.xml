@@ -6,16 +6,16 @@
     <description>ClaudeCodeUsage release feed</description>
     <language>en</language>
     <item>
-      <title>v1.0.0</title>
-      <pubDate>Sun, 05 Jul 2026 21:06:13 +0200</pubDate>
-      <sparkle:version>1</sparkle:version>
-      <sparkle:shortVersionString>1.0.0</sparkle:shortVersionString>
+      <title>v1.1.0</title>
+      <pubDate>Mon, 06 Jul 2026 15:56:40 +0200</pubDate>
+      <sparkle:version>2</sparkle:version>
+      <sparkle:shortVersionString>1.1.0</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-      <sparkle:releaseNotesLink>https://github.com/vincentlauriat/ClaudeCodeUsage/releases/tag/v1.0.0</sparkle:releaseNotesLink>
+      <sparkle:releaseNotesLink>https://github.com/vincentlauriat/ClaudeCodeUsage/releases/tag/v1.1.0</sparkle:releaseNotesLink>
       <enclosure
-        url="https://github.com/vincentlauriat/ClaudeCodeUsage/releases/download/v1.0.0/ClaudeCodeUsage-1.0.0.dmg"
+        url="https://github.com/vincentlauriat/ClaudeCodeUsage/releases/download/v1.1.0/ClaudeCodeUsage-1.1.0.dmg"
         type="application/octet-stream"
-        sparkle:edSignature="aT5iT3Z9V5beuKiu0lYmRZ5Y4NJfSUKKVn0HPIcubT458SLTBrD9RzA4dnP2ubFVCHGNCK2ApvFxJrkP/P56DA==" length="1110170" />
+        sparkle:edSignature="ZRtX6zof3C2K9z77uCIkM0qiR8aqH6i+TijRtgOy0xYRU8ELpFFSgcJzJn4+CN7Gd8jL6QkG/2S2xeY8IX8nCg==" length="1601354" />
     </item>
   </channel>
 </rss>
