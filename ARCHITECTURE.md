@@ -3,35 +3,45 @@
 ## Vue d'ensemble
 Application macOS native SwiftUI qui scanne les transcripts JSONL locaux de Claude Code et
 affiche un dashboard d'usage (sessions, tours, tokens, cache, coût estimé, graphique quotidien
-en barres empilées).
+en barres empilées), avec filtre par projet, répartition du coût par projet/agent/skill, et une
+liste de sessions nommées avec détail.
 
 ## Source de données
 Claude Code écrit un transcript JSONL append-only par session, dans :
 ```
 ~/.claude/projects/<chemin-projet-encodé>/<sessionId>.jsonl
+~/.claude/projects/<chemin-projet-encodé>/<sessionId>/subagents/agent-*.jsonl   (sous-agents)
 ```
 Les lignes avec `type == "assistant"` et un objet `message.usage` portent les compteurs de
 tokens qui nous intéressent : `message.model`, `usage.input_tokens`, `usage.output_tokens`,
-`usage.cache_creation_input_tokens`, `usage.cache_read_input_tokens`, plus `sessionId` et
-`timestamp`. L'app n'écrit jamais dans ces fichiers.
+`usage.cache_creation_input_tokens`, `usage.cache_read_input_tokens`, plus `sessionId`,
+`timestamp`, `cwd` (répertoire de travail réel), et — uniquement sur les tours de sous-agents —
+`attributionAgent`/`attributionSkill`. Les lignes `type: "ai-title"` (`{aiTitle, sessionId}`) et
+le champ `slug` (présent sur diverses lignes du fichier de session principal) donnent un nom
+lisible à la session. L'app n'écrit jamais dans ces fichiers.
 
 ## Organisation des modules
 ```
 ClaudeCodeUsage/
   App/ClaudeCodeUsageApp.swift      point d'entrée, fenêtre unique
   Models/
-    UsageEvent                      un tour assistant avec son usage
+    UsageEvent                      un tour assistant avec son usage (+ cwd, attribution agent/skill)
     DailyUsage                      agrégat par jour (graphique)
     UsageSummary                    agrégat pour les cartes de stats
     DateRangeFilter                 Today/This Week/.../All
     ModelPricing                    table de tarifs par famille de modèle
+    SessionInfo                     titre/slug/cwd d'une session (métadonnées hors UsageEvent)
+    SessionSummary                  agrégat par session (pour la liste de sessions)
+    BreakdownDimension / BreakdownRow  répartition par projet / agent / skill
   Services/
-    TranscriptScanner               scan incrémental des fichiers *.jsonl
+    TranscriptScanner               scan incrémental des fichiers *.jsonl (événements + SessionInfo)
     PricingCalculator                estimation du coût à partir des UsageEvent
   ViewModels/
-    UsageViewModel                  filtres, auto-refresh 30s, agrégation
+    UsageViewModel                  filtres (modèle/projet/plage), auto-refresh 30s, agrégation,
+                                     répartition par dimension, sessions
   Views/
-    ContentView, HeaderView, FilterBarView, StatCardView, DailyUsageChartView
+    ContentView, HeaderView, FilterBarView, StatCardView, DailyUsageChartView,
+    BreakdownView, SessionsListView, SessionDetailView
 ```
 
 ## Stratégie de scan

@@ -1,6 +1,15 @@
 import Foundation
 
 enum Formatters {
+    private static let homeDirectory = FileManager.default.homeDirectoryForCurrentUser.path
+
+    /// Replaces the home directory prefix with `~`, matching how paths are usually shown in a
+    /// terminal (e.g. `/Users/vincent/DevApps/ClaudeCodeUsage` -> `~/DevApps/ClaudeCodeUsage`).
+    static func shortenPath(_ path: String) -> String {
+        guard path.hasPrefix(homeDirectory) else { return path }
+        return "~" + path.dropFirst(homeDirectory.count)
+    }
+
     /// Compact K/M token formatting matching the reference dashboard (e.g. "452.9K", "3.19M").
     static func compactCount(_ value: Int) -> String {
         let v = Double(value)

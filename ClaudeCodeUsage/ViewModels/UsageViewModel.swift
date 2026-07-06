@@ -6,7 +6,9 @@ final class UsageViewModel: ObservableObject {
     static let autoRefreshInterval = 30
 
     @Published private(set) var allEvents: [UsageEvent] = []
+    @Published private(set) var sessionInfo: [String: SessionInfo] = [:]
     @Published var selectedModel: String? // nil == "All models"
+    @Published var selectedProject: String? // nil == "All projects"; holds a raw `cwd` value
     @Published var selectedRange: DateRangeFilter = .last30Days
     @Published private(set) var lastUpdated: Date?
     @Published private(set) var isScanning = false
@@ -28,14 +30,52 @@ final class UsageViewModel: ObservableObject {
         Array(Set(allEvents.map(\.model))).sorted()
     }
 
+    var availableProjects: [String] {
+        Array(Set(allEvents.map(\.cwd))).sorted()
+    }
+
     var filteredEvents: [UsageEvent] {
         let (start, end) = selectedRange.bounds()
         return allEvents.filter { event in
             if let selectedModel, event.model != selectedModel { return false }
+            if let selectedProject, event.cwd != selectedProject { return false }
             if let start, event.timestamp < start { return false }
             if let end, event.timestamp >= end { return false }
             return true
         }
+    }
+
+    /// Sorted (by cost descending) aggregate rows for the breakdown panel's currently selected
+    /// dimension.
+    func breakdown(for dimension: BreakdownDimension) -> [BreakdownRow] {
+        var byKey: [String: (turnCount: Int, tokens: Int, events: [UsageEvent])] = [:]
+        for event in filteredEvents {
+            let key = dimension.key(for: event)
+            var bucket = byKey[key] ?? (0, 0, [])
+            bucket.turnCount += 1
+            bucket.tokens += event.inputTokens + event.outputTokens + event.cacheCreationTokens + event.cacheReadTokens
+            bucket.events.append(event)
+            byKey[key] = bucket
+        }
+        return byKey.map { key, bucket in
+            BreakdownRow(
+                label: key,
+                turnCount: bucket.turnCount,
+                totalTokens: bucket.tokens,
+                estimatedCostUSD: PricingCalculator.estimatedCostUSD(for: bucket.events)
+            )
+        }.sorted { $0.estimatedCostUSD > $1.estimatedCostUSD }
+    }
+
+    /// Per-session aggregates for the currently filtered events, most recently active first.
+    var sessions: [SessionSummary] {
+        var eventsBySession: [String: [UsageEvent]] = [:]
+        for event in filteredEvents {
+            eventsBySession[event.sessionId, default: []].append(event)
+        }
+        return eventsBySession.compactMap { sessionId, events in
+            SessionSummary(sessionId: sessionId, events: events, info: sessionInfo[sessionId])
+        }.sorted { $0.lastSeen > $1.lastSeen }
     }
 
     var summary: UsageSummary {
@@ -82,8 +122,9 @@ final class UsageViewModel: ObservableObject {
         if fullRescan {
             await scanner.reset()
         }
-        let events = await scanner.scan()
-        allEvents = events
+        let result = await scanner.scan()
+        allEvents = result.events
+        sessionInfo = result.sessionInfo
         lastUpdated = Date()
         isScanning = false
         secondsUntilRefresh = Self.autoRefreshInterval
