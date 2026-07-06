@@ -177,3 +177,39 @@ landing page GitHub Pages, et mise à jour du portfolio + de lauriat.fr. Tout es
 — détail dans `CHANGES.md` et `ARCHITECTURE_EN.md` (section "Release pipeline"). Ce qui restait
 « hors scope MVP » ci-dessus (signature/notarisation/DMG/Sparkle) est donc désormais fait ; seuls
 la persistance du cache et le double axe restent en dehors du périmètre livré.
+
+## Suite — Persistance, tarifs éditables, double axe Y (2026-07-06)
+Trois derniers items du backlog MVP, implémentés sur demande explicite de Vincent.
+
+### 1. Persistance du cache de scan entre lancements
+`TranscriptScanner` gardait son cache `[String: FileState]` (offset/mtime/events) et
+`[String: SessionInfo]` uniquement en mémoire — un redémarrage de l'app relisait tous les
+transcripts depuis zéro. `UsageEvent`, `SessionInfo` et `FileState` deviennent `Codable` ; un
+`PersistedCache` (les deux dictionnaires) est chargé paresseusement au premier `scan()` depuis
+`~/Library/Application Support/ClaudeCodeUsage/scan-cache.json`, et réécrit après `scan()`
+uniquement si au moins un fichier a effectivement eu de nouveaux octets lus (`scanFile` retourne
+désormais un `Bool`) — un auto-refresh de 30s sans nouvelle activité n'écrit rien sur disque.
+`reset()` (bouton Rescan) supprime aussi le fichier de cache, pour repartir sur une base saine.
+
+### 2. Tarifs de coût configurables depuis l'UI
+`ModelPricing` devient `Codable`. Nouveau `PricingSettings` (Codable) qui regroupe les 4 tarifs
+(Opus/Sonnet/Haiku/Fable) avec `.default` reprenant exactement les valeurs actuellement en dur, et
+un lookup `pricing(forModel:)` identique à l'ancien `ModelPricing.forModel`. Persisté en
+`UserDefaults` (JSON encodé sous une clé dédiée) — pas besoin d'un fichier séparé, c'est un simple
+réglage utilisateur. `UsageViewModel` porte `@Published var pricingSettings`, sauvegardé à chaque
+changement. `PricingCalculator.estimatedCostUSD` et `SessionSummary.init` prennent désormais un
+`PricingSettings` en paramètre au lieu d'utiliser la table figée. Nouvelle vue
+`PricingSettingsView` (Form avec les 16 champs éditables + bouton "Reset to Defaults"), ouverte via
+un bouton engrenage dans `HeaderView`.
+
+### 3. Double axe Y visuel exact de la capture
+Annule la décision précédente ("axe Y unique, simplification assumée") sur demande explicite de
+Vincent : la capture d'origine a deux axes Y avec des échelles différentes (Cache en millions à
+gauche, Input/Output en centaines de milliers à droite) appliquées à la même pile de barres.
+Reproduit en normalisant chaque série par le maximum de son propre groupe d'axe (`cacheMax` pour
+Cache Read/Creation, `ioMax` pour Input/Output) vers une échelle commune 0...1, puis en dessinant
+deux jeux d'`AxisMarks` (`.leading` formaté via `cacheMax`, `.trailing` formaté via `ioMax`) aux
+mêmes fractions `[0, 0.25, 0.5, 0.75, 1.0]`. `UsageSeries` gagne `isCacheAxis` pour savoir quel
+groupe utiliser. Le résultat est fidèle à la capture mais garde la même incohérence
+mathématique assumée qu'à l'origine (deux échelles sur une même pile) — documenté explicitement
+dans `ARCHITECTURE.md`/`ARCHITECTURE_EN.md`.
