@@ -26,4 +26,15 @@ enum UsageSeries: String, CaseIterable, Identifiable {
         case .cacheCreation: day.cacheCreationTokens
         }
     }
+
+    /// Which of the daily chart's two independent Y axes this series is scaled against (see
+    /// `DailyUsageChartView`): Cache Read/Creation share a left "millions" axis, Input/Output
+    /// share a right "hundreds of thousands" axis — reproducing the reference dashboard's
+    /// original two-axis look.
+    var isCacheAxis: Bool {
+        switch self {
+        case .cacheRead, .cacheCreation: true
+        case .input, .output: false
+        }
+    }
 }

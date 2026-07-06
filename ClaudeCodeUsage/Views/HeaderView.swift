@@ -2,6 +2,7 @@ import SwiftUI
 
 struct HeaderView: View {
     @ObservedObject var viewModel: UsageViewModel
+    @State private var showingPricingSettings = false
 
     var body: some View {
         ZStack {
@@ -14,6 +15,13 @@ struct HeaderView: View {
                     .fontWeight(.semibold)
                     .foregroundStyle(Theme.textPrimary)
                 Spacer()
+                Button {
+                    showingPricingSettings = true
+                } label: {
+                    Label("Pricing", systemImage: "gearshape")
+                        .labelStyle(.titleAndIcon)
+                }
+                .buttonStyle(.bordered)
                 Button(action: viewModel.rescan) {
                     Label("Rescan", systemImage: "arrow.clockwise")
                         .labelStyle(.titleAndIcon)
@@ -39,5 +47,8 @@ struct HeaderView: View {
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 16)
+        .sheet(isPresented: $showingPricingSettings) {
+            PricingSettingsView(viewModel: viewModel)
+        }
     }
 }

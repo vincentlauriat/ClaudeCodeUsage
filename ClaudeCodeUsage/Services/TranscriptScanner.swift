@@ -14,10 +14,17 @@ actor TranscriptScanner {
         let sessionInfo: [String: SessionInfo]
     }
 
-    private struct FileState {
+    private struct FileState: Codable {
         var offset: UInt64
         var mtime: Date
         var events: [UsageEvent]
+    }
+
+    /// Everything persisted to disk between launches, so a relaunch doesn't have to re-read every
+    /// transcript from byte zero.
+    private struct PersistedCache: Codable {
+        var fileStates: [String: FileState]
+        var sessionInfo: [String: SessionInfo]
     }
 
     private var fileStates: [String: FileState] = [:]
@@ -25,6 +32,16 @@ actor TranscriptScanner {
     /// on `UsageEvent`), so they're accumulated separately while scanning every line type, not
     /// just assistant turns.
     private var sessionInfoBySessionId: [String: SessionInfo] = [:]
+    private var didLoadPersistedCache = false
+
+    private static var cacheDirectory: URL {
+        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        return appSupport.appendingPathComponent("ClaudeCodeUsage", isDirectory: true)
+    }
+
+    private static var cacheFileURL: URL {
+        cacheDirectory.appendingPathComponent("scan-cache.json")
+    }
 
     private static let isoFormatterWithFraction: ISO8601DateFormatter = {
         let formatter = ISO8601DateFormatter()
@@ -39,25 +56,36 @@ actor TranscriptScanner {
     }()
 
     /// Clears all cached offsets, forcing a full re-read of every transcript on the next scan.
+    /// Also drops the on-disk cache so a relaunch after "Rescan" doesn't reload stale data.
     func reset() {
         fileStates.removeAll()
         sessionInfoBySessionId.removeAll()
+        try? FileManager.default.removeItem(at: Self.cacheFileURL)
     }
 
     /// Scans every `.jsonl` transcript and returns the full accumulated set of usage events plus
     /// per-session metadata (title/slug/project).
     func scan() -> ScanResult {
+        loadPersistedCacheIfNeeded()
+
         let root = FileManager.default.homeDirectoryForCurrentUser
             .appendingPathComponent(".claude/projects")
 
+        var didChange = false
         if let enumerator = FileManager.default.enumerator(
             at: root,
             includingPropertiesForKeys: [.contentModificationDateKey, .fileSizeKey],
             options: [.skipsHiddenFiles]
         ) {
             for case let fileURL as URL in enumerator where fileURL.pathExtension == "jsonl" {
-                scanFile(at: fileURL)
+                if scanFile(at: fileURL) {
+                    didChange = true
+                }
             }
+        }
+
+        if didChange {
+            persistCache()
         }
 
         return ScanResult(
@@ -66,14 +94,37 @@ actor TranscriptScanner {
         )
     }
 
-    private func scanFile(at url: URL) {
+    /// Loads the on-disk cache (if any) once per process, so the very first scan after launch
+    /// only has to read bytes appended since the app was last quit.
+    private func loadPersistedCacheIfNeeded() {
+        guard !didLoadPersistedCache else { return }
+        didLoadPersistedCache = true
+        guard let data = try? Data(contentsOf: Self.cacheFileURL),
+              let persisted = try? JSONDecoder().decode(PersistedCache.self, from: data)
+        else { return }
+        fileStates = persisted.fileStates
+        sessionInfoBySessionId = persisted.sessionInfo
+    }
+
+    private func persistCache() {
+        let payload = PersistedCache(fileStates: fileStates, sessionInfo: sessionInfoBySessionId)
+        guard let data = try? JSONEncoder().encode(payload) else { return }
+        try? FileManager.default.createDirectory(at: Self.cacheDirectory, withIntermediateDirectories: true)
+        try? data.write(to: Self.cacheFileURL, options: .atomic)
+    }
+
+    /// Returns whether this file's cached state actually changed (new bytes read, or its mtime
+    /// moved) — callers use this to skip writing the persisted cache back to disk when nothing
+    /// happened, which is the common case on a 30s auto-refresh with no new Claude Code activity.
+    @discardableResult
+    private func scanFile(at url: URL) -> Bool {
         let path = url.path
         guard let attrs = try? FileManager.default.attributesOfItem(atPath: path),
               let mtime = attrs[.modificationDate] as? Date,
-              let size = (attrs[.size] as? NSNumber)?.uint64Value else { return }
+              let size = (attrs[.size] as? NSNumber)?.uint64Value else { return false }
 
         if let existing = fileStates[path], existing.mtime == mtime, existing.offset == size {
-            return // unchanged since last scan
+            return false // unchanged since last scan
         }
 
         var startOffset: UInt64 = 0
@@ -85,19 +136,19 @@ actor TranscriptScanner {
         // Otherwise the file shrank/was replaced (unexpected for append-only transcripts) —
         // fall back to a full re-read from the start.
 
-        guard let handle = try? FileHandle(forReadingFrom: url) else { return }
+        guard let handle = try? FileHandle(forReadingFrom: url) else { return false }
         defer { try? handle.close() }
         try? handle.seek(toOffset: startOffset)
 
         guard let chunk = try? handle.readToEnd(), !chunk.isEmpty else {
             fileStates[path] = FileState(offset: startOffset, mtime: mtime, events: priorEvents)
-            return
+            return true
         }
 
         guard let lastNewline = chunk.lastIndex(of: UInt8(ascii: "\n")) else {
             // No complete line yet in this chunk (mid-write) — retry from the same offset later.
             fileStates[path] = FileState(offset: startOffset, mtime: mtime, events: priorEvents)
-            return
+            return true
         }
 
         let completeData = chunk[chunk.startIndex...lastNewline]
@@ -117,6 +168,7 @@ actor TranscriptScanner {
         }
 
         fileStates[path] = FileState(offset: newOffset, mtime: mtime, events: priorEvents + newEvents)
+        return true
     }
 
     /// Merges any of `title`/`slug`/`cwd` found on this line into that session's accumulated

@@ -11,14 +11,18 @@ writes under `~/.claude/projects/**`.
 
 - **Stat cards** — Sessions, Turns, Input Tokens, Output Tokens, Cache Read, Cache Creation,
   Est. Cost
-- **Daily usage chart** — stacked bar chart of the last N days (Swift Charts)
+- **Daily usage chart** — dual Y-axis stacked bar chart of the last N days (Cache on a left
+  "millions" axis, Input/Output on a right "hundreds of thousands" axis, Swift Charts)
 - **Filters** — by model, by project (working directory), and by date range (Today / This Week /
   This Month / Prev Month / 7d / 30d / 90d / All)
 - **Breakdown panel** — cost/token table by Project, Agent, or Skill (switchable), sorted by cost
 - **Sessions list** — named sessions (from Claude Code's auto-generated title/slug), most recent
   first, with a click-through detail sheet (per-model breakdown, time range)
+- **Editable pricing** — gear button opens a per-model-family rate editor (persisted), so Est.
+  Cost stays accurate if Anthropic changes prices
 - **Auto-refresh** — rescans every 30s (incremental — only reads newly appended transcript
-  bytes), plus a manual **Rescan** button for a full re-read
+  bytes), plus a manual **Rescan** button for a full re-read. The scan cache is persisted to disk,
+  so relaunching the app doesn't have to re-parse transcripts it already read
 - **Auto-update** — Sparkle-based, checks `appcast.xml` on launch and via "Check for Updates…"
 
 ## Requirements
@@ -58,11 +62,9 @@ full pipeline.
 ## Notes
 
 - Estimated cost uses an approximate per-model-family pricing table (no exact local pricing API
-  exists) — see `ARCHITECTURE_EN.md` for the assumption and the rate table.
+  exists), editable from the app's Pricing sheet — see `ARCHITECTURE_EN.md` for the default rates.
 - The app does not sandbox itself: it needs unprompted read access to `~/.claude/projects`.
 - Sparkle updates are signed with the EdDSA key shared across Vincent's macOS apps (Keychain
   account "MarkdownViewer") — never regenerate it.
-
-## Roadmap
-- [ ] Scan-cache persistence across app launches
-- [ ] Editable pricing table from the UI
+- The `ClaudeCodeUsageTests` target currently can't run in this dev environment (a pre-existing
+  test-runner crash, unrelated to app code) — see `TODOS.md`.

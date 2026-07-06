@@ -3,7 +3,7 @@ import XCTest
 
 final class PricingCalculatorTests: XCTestCase {
     func testSonnetCostMatchesExpectedRatios() {
-        let pricing = ModelPricing.forModel("claude-sonnet-5")
+        let pricing = PricingSettings.default.pricing(forModel: "claude-sonnet-5")
         let cost = pricing.cost(
             inputTokens: 1_000_000,
             outputTokens: 1_000_000,
@@ -14,7 +14,7 @@ final class PricingCalculatorTests: XCTestCase {
     }
 
     func testUnknownModelFallsBackToSonnetTier() {
-        let pricing = ModelPricing.forModel("some-future-model")
-        XCTAssertEqual(pricing.inputPerMTok, ModelPricing.sonnet.inputPerMTok)
+        let pricing = PricingSettings.default.pricing(forModel: "some-future-model")
+        XCTAssertEqual(pricing.inputPerMTok, PricingSettings.default.sonnet.inputPerMTok)
     }
 }
