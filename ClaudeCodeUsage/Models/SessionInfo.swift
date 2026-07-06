@@ -4,7 +4,7 @@ import Foundation
 /// only appears on standalone `type: "ai-title"` lines (or the `slug` field on a few line
 /// types), so it's collected separately from `UsageEvent` while scanning every line, not just
 /// assistant turns.
-struct SessionInfo {
+struct SessionInfo: Codable {
     var title: String?
     var slug: String?
     var cwd: String?
