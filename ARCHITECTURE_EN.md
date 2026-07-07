@@ -61,6 +61,30 @@ To keep 30s auto-refresh cheap:
   already-seen JSON, but doesn't eliminate directory-enumeration cost (a `stat()` per file is
   still needed on every scan to detect changes).
 
+## UI performance — cached derived aggregates
+`UsageViewModel` publishes a 1s countdown (`secondsUntilRefresh`, shown in the header) on the
+same `ObservableObject` as the usage data. Since any `@Published` change invalidates every SwiftUI
+view observing that object, every tick used to re-run `filteredEvents`/`summary`/`dailyUsages`/
+`breakdown(for:)`/`sessions` from scratch — full filters, groupings and cost sums over the entire
+event set (tens of thousands of turns), every second, forever. Fixed by making these `@Published`
+*stored* properties, recomputed only in `recomputeFiltered()`/`recomputeAll()`, which run from
+`didSet` on `allEvents`/`sessionInfo`/the three filters/`pricingSettings` — i.e. only when the
+data they depend on actually changes, not on every render.
+Two related hangs, found after that fix didn't fully resolve the reported freezes:
+- `DailyUsageChartView.ChartPoint.id` was `UUID()` — freshly randomized on every access of the
+  `points` computed property. Swift Charts uses `Identifiable` ids to diff marks; a random id
+  means it sees an entirely new dataset on every redraw and rebuilds the whole chart instead of
+  skipping unchanged marks. Fixed with a deterministic `"\(day)-\(series)"` id.
+- `UsageViewModel.breakdown(for:)` grouped events per key into a `[String: (turnCount: Int,
+  tokens: Int, events: [UsageEvent])]` dictionary, appending to `bucket.events` via a
+  read-copy-mutate-write pattern (`var bucket = byKey[key] ?? …; bucket.events.append(event); byKey[key]
+  = bucket`). While `bucket` and the dictionary's own copy are both briefly alive, copy-on-write
+  can't reuse the array's buffer, so every append recopies the whole bucket-so-far — O(n²) for any
+  key that absorbs most events (e.g. "Direct (main session)" for the Agent/Skill dimensions, which
+  is why switching to Agent/Skill was much slower than Project). Fixed by accumulating cost
+  incrementally (`costUSD: Double` per key) instead of collecting an events array to cost
+  afterwards.
+
 ## Tech stack
 - SwiftUI + Swift Charts (no external dependency needed for the MVP)
 - macOS 14+ deployment target

@@ -12,11 +12,16 @@ struct DailyUsageChartView: View {
     let rangeLabel: String
 
     private struct ChartPoint: Identifiable {
-        let id = UUID()
         let day: Date
         let series: UsageSeries
         /// Value as a fraction (0...1) of this series' own axis-group max for the range.
         let normalizedValue: Double
+
+        /// Deterministic (day, series) key rather than a fresh `UUID()` per instance — `points`
+        /// is a computed property re-evaluated on every redraw, and a random id would make Swift
+        /// Charts see an entirely new dataset each time (defeating its mark diffing and forcing a
+        /// full chart rebuild every redraw, even when the underlying data hasn't changed).
+        var id: String { "\(day.timeIntervalSince1970)-\(series.rawValue)" }
     }
 
     /// Fixed tick positions on the shared 0...1 plotting scale — each is independently labeled
