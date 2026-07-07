@@ -53,6 +53,7 @@ struct SessionsListView: View {
     private var header: some View {
         HStack {
             Text("TITLE")
+            Spacer()
             Text("PROJECT").frame(width: 180, alignment: .leading)
             Text("STARTED").frame(width: 130, alignment: .leading)
             Text("TURNS").frame(width: 60, alignment: .trailing)
@@ -71,6 +72,7 @@ struct SessionsListView: View {
                 .foregroundStyle(Theme.textPrimary)
                 .lineLimit(1)
                 .truncationMode(.tail)
+            Spacer()
             Text(Formatters.shortenPath(session.cwd))
                 .frame(width: 180, alignment: .leading)
                 .lineLimit(1)

@@ -63,6 +63,33 @@ transcripts. Pour que l'auto-refresh (30s) reste léger :
   répertoire (un `stat()` par fichier reste nécessaire à chaque scan pour détecter les
   changements).
 
+## Performance UI — agrégats mis en cache
+`UsageViewModel` publie un compte à rebours d'une seconde (`secondsUntilRefresh`, affiché dans le
+header) sur le même `ObservableObject` que les données d'usage. Comme tout changement `@Published`
+invalide toutes les vues SwiftUI qui observent cet objet, chaque tick recalculait auparavant
+`filteredEvents`/`summary`/`dailyUsages`/`breakdown(for:)`/`sessions` depuis zéro — filtres,
+regroupements et sommes de coût sur l'ensemble des événements (des dizaines de milliers de tours),
+chaque seconde, indéfiniment. Corrigé en transformant ces propriétés en `@Published` *stockées*,
+recalculées uniquement dans `recomputeFiltered()`/`recomputeAll()`, déclenchées par un `didSet` sur
+`allEvents`/`sessionInfo`/les trois filtres/`pricingSettings` — donc seulement quand les données
+dont elles dépendent changent réellement, pas à chaque rendu.
+Deux blocages liés, trouvés après que ce premier correctif n'ait pas suffi :
+- `DailyUsageChartView.ChartPoint.id` valait `UUID()` — régénéré aléatoirement à chaque accès à la
+  propriété calculée `points`. Swift Charts se base sur ces id `Identifiable` pour savoir quoi
+  redessiner ; un id aléatoire lui fait croire que tout le dataset a changé à chaque rendu, et il
+  reconstruit tout le graphique au lieu d'ignorer les barres inchangées. Corrigé avec un id
+  déterministe `"\(jour)-\(série)"`.
+- `UsageViewModel.breakdown(for:)` regroupait les événements par clé dans un dictionnaire
+  `[String: (turnCount: Int, tokens: Int, events: [UsageEvent])]`, en ajoutant à `bucket.events`
+  via un pattern lecture-copie-mutation-écriture (`var bucket = byKey[key] ?? …;
+  bucket.events.append(event); byKey[key] = bucket`). Comme `bucket` et la copie du dictionnaire
+  restent toutes deux vivantes un instant, le copy-on-write ne peut pas réutiliser le buffer du
+  tableau : chaque ajout recopie tout le bucket accumulé jusque-là — O(n²) pour toute clé qui
+  absorbe la majorité des événements (ex. "Direct (main session)" pour les dimensions Agent/Skill,
+  d'où un passage à Agent/Skill bien plus lent qu'à Project). Corrigé en accumulant le coût de
+  façon incrémentale (`costUSD: Double` par clé) plutôt qu'en collectant un tableau d'événements à
+  coûter après coup.
+
 ## Stack technique
 - SwiftUI + Swift Charts (aucune dépendance externe nécessaire pour le MVP)
 - Cible de déploiement macOS 14+
