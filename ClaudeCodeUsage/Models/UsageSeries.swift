@@ -11,10 +11,10 @@ enum UsageSeries: String, CaseIterable, Identifiable {
 
     var color: Color {
         switch self {
-        case .input: Color(red: 0.36, green: 0.56, blue: 0.85)
-        case .output: Color(red: 0.85, green: 0.47, blue: 0.35)
-        case .cacheRead: Color(red: 0.42, green: 0.62, blue: 0.51)
-        case .cacheCreation: Color(red: 0.80, green: 0.67, blue: 0.30)
+        case .input: Theme.adaptive(light: (0.16, 0.36, 0.65), dark: (0.36, 0.56, 0.85))
+        case .output: Theme.adaptive(light: (0.72, 0.30, 0.18), dark: (0.85, 0.47, 0.35))
+        case .cacheRead: Theme.adaptive(light: (0.20, 0.45, 0.30), dark: (0.42, 0.62, 0.51))
+        case .cacheCreation: Theme.adaptive(light: (0.62, 0.48, 0.10), dark: (0.80, 0.67, 0.30))
         }
     }
 

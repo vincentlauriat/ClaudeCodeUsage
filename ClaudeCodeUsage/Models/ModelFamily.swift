@@ -12,10 +12,10 @@ enum ModelFamily: String, CaseIterable, Identifiable {
 
     var color: Color {
         switch self {
-        case .opus: Color(red: 0.29, green: 0.51, blue: 0.86)
-        case .sonnet: Color(red: 0.11, green: 0.62, blue: 0.55)
-        case .haiku: Color(red: 0.85, green: 0.68, blue: 0.10)
-        case .fable: Color(red: 0.24, green: 0.56, blue: 0.16)
+        case .opus: Theme.adaptive(light: (0.145, 0.365, 0.72), dark: (0.29, 0.51, 0.86))
+        case .sonnet: Theme.adaptive(light: (0.06, 0.45, 0.40), dark: (0.11, 0.62, 0.55))
+        case .haiku: Theme.adaptive(light: (0.65, 0.48, 0.03), dark: (0.85, 0.68, 0.10))
+        case .fable: Theme.adaptive(light: (0.15, 0.42, 0.09), dark: (0.24, 0.56, 0.16))
         }
     }
 }
