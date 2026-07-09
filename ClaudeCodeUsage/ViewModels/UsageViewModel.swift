@@ -44,6 +44,19 @@ final class UsageViewModel: ObservableObject {
     @Published private(set) var sessions: [SessionSummary] = []
     private var breakdownCache: [BreakdownDimension: [BreakdownRow]] = [:]
 
+    /// Fixed "today vs yesterday" / "this week vs last week" comparisons and derived signals.
+    /// These ignore the RANGE filter (a fixed window is the whole point of a day/week-over-day/
+    /// week comparison) but still respect MODELS/PROJECT, like everything else. `yearlyUsage`/
+    /// `monthlyUsage` have no consuming view yet — see their doc comments.
+    @Published private(set) var hourlyUsageYesterday: [HourlyUsage] = []
+    @Published private(set) var hourlyUsageToday: [HourlyUsage] = []
+    @Published private(set) var sessionsLastWeekByWeekday: [Int] = Array(repeating: 0, count: 7)
+    @Published private(set) var sessionsThisWeekByWeekday: [Int] = Array(repeating: 0, count: 7)
+    @Published private(set) var yearlyUsage: [YearlyUsage] = []
+    @Published private(set) var monthlyUsage: [MonthlyUsage] = []
+    @Published private(set) var modelMix: [ModelMixRow] = []
+    @Published private(set) var insights: [Insight] = []
+
     private let scanner = TranscriptScanner()
     private var ticker: AnyCancellable?
 
@@ -176,5 +189,129 @@ final class UsageViewModel: ObservableObject {
         }.sorted { $0.lastSeen > $1.lastSeen }
 
         breakdownCache.removeAll()
+
+        var mixByFamily: [ModelFamily: Double] = [:]
+        for event in events {
+            let cost = pricingSettings.pricing(forModel: event.model).cost(
+                inputTokens: event.inputTokens,
+                outputTokens: event.outputTokens,
+                cacheCreationTokens: event.cacheCreationTokens,
+                cacheReadTokens: event.cacheReadTokens
+            )
+            mixByFamily[pricingSettings.family(forModel: event.model), default: 0] += cost
+        }
+        modelMix = ModelFamily.allCases.compactMap { family in
+            guard let cost = mixByFamily[family], cost > 0 else { return nil }
+            return ModelMixRow(family: family, costUSD: cost)
+        }
+
+        recomputeFixedWindows(events: events)
+    }
+
+    /// The "today vs yesterday" / "this week vs last week" comparisons and the aggregates that
+    /// depend only on `allEvents`/MODELS/PROJECT (not the RANGE filter). `events` is only used
+    /// here for the insights that are meant to reflect the current view (unpriced models, cache
+    /// hit rate) — the week-over-week cost trend intentionally uses the unranged events instead.
+    private func recomputeFixedWindows(events: [UsageEvent]) {
+        let unrangedEvents = allEvents.filter { event in
+            if let selectedModel, event.model != selectedModel { return false }
+            if let selectedProject, event.cwd != selectedProject { return false }
+            return true
+        }
+
+        let calendar = Calendar.current
+        let now = Date()
+        let todayStart = calendar.startOfDay(for: now)
+        let yesterdayStart = calendar.date(byAdding: .day, value: -1, to: todayStart) ?? todayStart
+        hourlyUsageToday = computeHourlyUsage(events: unrangedEvents, dayStart: todayStart, calendar: calendar)
+        hourlyUsageYesterday = computeHourlyUsage(events: unrangedEvents, dayStart: yesterdayStart, calendar: calendar)
+
+        var isoCalendar = Calendar(identifier: .iso8601)
+        isoCalendar.timeZone = calendar.timeZone
+        let thisWeekStart = isoCalendar.dateInterval(of: .weekOfYear, for: now)?.start ?? todayStart
+        let lastWeekStart = isoCalendar.date(byAdding: .day, value: -7, to: thisWeekStart) ?? thisWeekStart
+        sessionsThisWeekByWeekday = computeWeeklySessionCounts(events: unrangedEvents, weekStart: thisWeekStart, calendar: isoCalendar)
+        sessionsLastWeekByWeekday = computeWeeklySessionCounts(events: unrangedEvents, weekStart: lastWeekStart, calendar: isoCalendar)
+        let thisWeekCostUSD = computeWeeklyCost(events: unrangedEvents, weekStart: thisWeekStart, calendar: isoCalendar)
+        let lastWeekCostUSD = computeWeeklyCost(events: unrangedEvents, weekStart: lastWeekStart, calendar: isoCalendar)
+
+        yearlyUsage = computeYearlyUsage(events: unrangedEvents, calendar: calendar)
+        monthlyUsage = computeMonthlyUsage(events: unrangedEvents, calendar: calendar)
+
+        insights = InsightEngine.derive(
+            events: events,
+            thisWeekCostUSD: thisWeekCostUSD,
+            lastWeekCostUSD: lastWeekCostUSD,
+            pricingSettings: pricingSettings
+        )
+    }
+
+    private func computeHourlyUsage(events: [UsageEvent], dayStart: Date, calendar: Calendar) -> [HourlyUsage] {
+        guard let dayEnd = calendar.date(byAdding: .day, value: 1, to: dayStart) else { return [] }
+        var buckets = (0..<24).map { HourlyUsage(hour: $0) }
+        for event in events where event.timestamp >= dayStart && event.timestamp < dayEnd {
+            let hour = calendar.component(.hour, from: event.timestamp)
+            buckets[hour].inputTokens += event.inputTokens
+            buckets[hour].outputTokens += event.outputTokens
+            buckets[hour].cacheReadTokens += event.cacheReadTokens
+            buckets[hour].cacheCreationTokens += event.cacheCreationTokens
+            buckets[hour].estimatedCostUSD += pricingSettings.pricing(forModel: event.model).cost(
+                inputTokens: event.inputTokens,
+                outputTokens: event.outputTokens,
+                cacheCreationTokens: event.cacheCreationTokens,
+                cacheReadTokens: event.cacheReadTokens
+            )
+        }
+        return buckets
+    }
+
+    private func computeWeeklySessionCounts(events: [UsageEvent], weekStart: Date, calendar: Calendar) -> [Int] {
+        (0..<7).map { offset in
+            guard let dayStart = calendar.date(byAdding: .day, value: offset, to: weekStart),
+                  let dayEnd = calendar.date(byAdding: .day, value: 1, to: dayStart) else { return 0 }
+            let sessionIds = events.filter { $0.timestamp >= dayStart && $0.timestamp < dayEnd }.map(\.sessionId)
+            return Set(sessionIds).count
+        }
+    }
+
+    private func computeWeeklyCost(events: [UsageEvent], weekStart: Date, calendar: Calendar) -> Double {
+        guard let weekEnd = calendar.date(byAdding: .day, value: 7, to: weekStart) else { return 0 }
+        let weekEvents = events.filter { $0.timestamp >= weekStart && $0.timestamp < weekEnd }
+        return PricingCalculator.estimatedCostUSD(for: weekEvents, pricing: pricingSettings)
+    }
+
+    private func computeYearlyUsage(events: [UsageEvent], calendar: Calendar) -> [YearlyUsage] {
+        var byYear: [Int: (sessionIds: Set<String>, costUSD: Double)] = [:]
+        for event in events {
+            let year = calendar.component(.year, from: event.timestamp)
+            var bucket = byYear[year] ?? (Set<String>(), 0)
+            bucket.sessionIds.insert(event.sessionId)
+            bucket.costUSD += pricingSettings.pricing(forModel: event.model).cost(
+                inputTokens: event.inputTokens,
+                outputTokens: event.outputTokens,
+                cacheCreationTokens: event.cacheCreationTokens,
+                cacheReadTokens: event.cacheReadTokens
+            )
+            byYear[year] = bucket
+        }
+        return byYear.keys.sorted().map { year in
+            let bucket = byYear[year]!
+            return YearlyUsage(year: year, sessionCount: bucket.sessionIds.count, estimatedCostUSD: bucket.costUSD)
+        }
+    }
+
+    private func computeMonthlyUsage(events: [UsageEvent], calendar: Calendar) -> [MonthlyUsage] {
+        var byMonth: [Date: Double] = [:]
+        for event in events {
+            let components = calendar.dateComponents([.year, .month], from: event.timestamp)
+            guard let monthStart = calendar.date(from: components) else { continue }
+            byMonth[monthStart, default: 0] += pricingSettings.pricing(forModel: event.model).cost(
+                inputTokens: event.inputTokens,
+                outputTokens: event.outputTokens,
+                cacheCreationTokens: event.cacheCreationTokens,
+                cacheReadTokens: event.cacheReadTokens
+            )
+        }
+        return byMonth.keys.sorted().map { MonthlyUsage(monthStart: $0, estimatedCostUSD: byMonth[$0]!) }
     }
 }

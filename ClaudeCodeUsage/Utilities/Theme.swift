@@ -7,6 +7,9 @@ enum Theme {
     static let textPrimary = Color(white: 0.95)
     static let textSecondary = Color(white: 0.55)
     static let accentGreen = Color(red: 0.42, green: 0.80, blue: 0.51)
+    /// General "this period" emphasis accent for the comparison charts (sessions/cost trends) —
+    /// distinct from `UsageSeries.input`'s blue, which is tied to token-series semantics.
+    static let accentBlue = Color(red: 0.30, green: 0.55, blue: 0.88)
 }
 
 extension View {
