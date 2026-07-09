@@ -7,6 +7,12 @@ writes under `~/.claude/projects/**`.
 [Download the latest release](https://github.com/vincentlauriat/ClaudeCodeUsage/releases/latest) ·
 [Landing page](https://vincentlauriat.github.io/ClaudeCodeUsage/)
 
+## Screenshots
+
+![Dashboard — stat cards, sessions/cost trends, insights, model mix, and the daily usage chart](docs/screenshots/dashboard.png)
+
+![Pricing sheet — editable per-model-family rates](docs/screenshots/pricing.png)
+
 ## Features
 
 - **Stat cards** — Sessions, Turns, Input Tokens, Output Tokens, Cache Read, Cache Creation,
