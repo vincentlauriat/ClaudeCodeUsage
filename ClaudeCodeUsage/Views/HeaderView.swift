@@ -2,6 +2,7 @@ import SwiftUI
 
 struct HeaderView: View {
     @ObservedObject var viewModel: UsageViewModel
+    @AppStorage("appTheme") private var appTheme: AppTheme = .system
     @State private var showingPricingSettings = false
 
     var body: some View {
@@ -15,6 +16,14 @@ struct HeaderView: View {
                     .fontWeight(.semibold)
                     .foregroundStyle(Theme.textPrimary)
                 Spacer()
+                Picker("Appearance", selection: $appTheme) {
+                    ForEach(AppTheme.allCases) { theme in
+                        Image(systemName: theme.icon).tag(theme)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .frame(width: 100)
                 Button {
                     showingPricingSettings = true
                 } label: {
