@@ -4,6 +4,7 @@ struct ContentView: View {
     @StateObject private var viewModel = UsageViewModel()
 
     private let statColumns = Array(repeating: GridItem(.flexible(), spacing: 12), count: 5)
+    private let cardColumns = Array(repeating: GridItem(.flexible(), spacing: 16), count: 2)
 
     var body: some View {
         VStack(spacing: 0) {
@@ -15,6 +16,18 @@ struct ContentView: View {
             ScrollView {
                 VStack(spacing: 16) {
                     statGrid
+                    LazyVGrid(columns: cardColumns, spacing: 16) {
+                        SessionsPerWeekChartView(
+                            lastWeek: viewModel.sessionsLastWeekByWeekday,
+                            thisWeek: viewModel.sessionsThisWeekByWeekday
+                        )
+                        CostPerHourChartView(
+                            yesterday: viewModel.hourlyUsageYesterday,
+                            today: viewModel.hourlyUsageToday
+                        )
+                        InsightsPanelView(insights: viewModel.insights)
+                        ModelMixView(rows: viewModel.modelMix)
+                    }
                     DailyUsageChartView(
                         dailyUsages: viewModel.dailyUsages,
                         rangeLabel: viewModel.selectedRange.rawValue

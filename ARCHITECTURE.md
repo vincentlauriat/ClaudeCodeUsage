@@ -3,8 +3,10 @@
 ## Vue d'ensemble
 Application macOS native SwiftUI qui scanne les transcripts JSONL locaux de Claude Code et
 affiche un dashboard d'usage (sessions, tours, tokens, cache, coût estimé éditable, graphique
-quotidien à double axe Y), avec filtre par projet, répartition du coût par projet/agent/skill, et
-une liste de sessions nommées avec détail. Le cache de scan est persisté entre lancements.
+quotidien à double axe Y), une grille de cartes de comparaison (tendances sessions/coût, alertes
+automatiques, répartition du coût par famille de modèle), un filtre par projet, une répartition
+du coût par projet/agent/skill, et une liste de sessions nommées avec détail. Le cache de scan
+est persisté entre lancements.
 
 ## Source de données
 Claude Code écrit un transcript JSONL append-only par session, dans :
@@ -34,15 +36,28 @@ ClaudeCodeUsage/
     SessionInfo                     titre/slug/cwd d'une session (métadonnées hors UsageEvent)
     SessionSummary                  agrégat par session (pour la liste de sessions)
     BreakdownDimension / BreakdownRow  répartition par projet / agent / skill
+    HourlyUsage                     agrégat par heure de la journée (carte "Cost per hour")
+    YearlyUsage / MonthlyUsage       agrégat par année / par mois — calculé et publié, sans vue
+                                     consommatrice pour l'instant (préparation d'une mise en page
+                                     de dashboard plus dense, voir "Grille de cartes" ci-dessous)
+    ModelFamily / ModelMixRow        les 4 familles tarifaires en enum à ordre fixe + couleur, et
+                                     la part de coût d'une famille (carte "Model mix")
+    Insight                         une ligne du panneau Insights & Alerts (niveau + texte)
   Services/
     TranscriptScanner               scan incrémental des fichiers *.jsonl (événements + SessionInfo),
                                      cache persisté sur disque entre lancements
     PricingCalculator                estimation du coût à partir des UsageEvent + PricingSettings
+    InsightEngine                    dérive les Insight à partir des événements filtrés + du coût
+                                     semaine sur semaine (tendance de coût, modèles sans tarif,
+                                     taux de cache)
   ViewModels/
     UsageViewModel                  filtres (modèle/projet/plage), auto-refresh 30s, agrégation,
-                                     répartition par dimension, sessions, tarifs éditables
+                                     répartition par dimension, sessions, tarifs éditables, les
+                                     comparaisons fixes aujourd'hui/hier et cette semaine/semaine
+                                     dernière, les insights
   Views/
     ContentView, HeaderView, FilterBarView, StatCardView, DailyUsageChartView,
+    SessionsPerWeekChartView, CostPerHourChartView, InsightsPanelView, ModelMixView,
     BreakdownView, SessionsListView, SessionDetailView, PricingSettingsView
 ```
 
@@ -118,6 +133,34 @@ de *son propre* groupe d'axe (`cacheMax` pour Cache Read/Creation, `ioMax` pour 
 `.trailing` formaté via `ioMax`) sont dessinés aux mêmes fractions `[0, .25, .5, .75, 1]`. Le
 résultat est visuellement fidèle à la capture mais garde la même incohérence mathématique
 assumée à l'origine.
+
+## Grille de cartes — évolution du dashboard (Proposition C)
+Suite à une exploration graphique (3 maquettes HTML comparant des dispositions, inspirées d'une
+référence de dashboard type retail), `ContentView` gagne une grille `LazyVGrid` à 2 colonnes entre
+la rangée de stat-cards et le graphique quotidien existant : `SessionsPerWeekChartView` (line
+chart cette-semaine-vs-semaine-dernière), `CostPerHourChartView` (bullet bar chart
+aujourd'hui-vs-hier), `InsightsPanelView`, et `ModelMixView`. C'était la moins risquée des trois
+maquettes (celle qui touche le moins la logique de données existante) — une disposition « grille
+de cartes indépendantes » plus proche de la maquette de référence (bulle → équivalents
+barre/chiffre héros, cartes hebdo/mensuelles) a été mise en réserve pour une itération suivante,
+une fois qu'elle mérite ses propres cartes ; `YearlyUsage`/`MonthlyUsage` existent déjà pour cela
+(voir Models ci-dessus), donc cette itération future ne touchera qu'aux vues, pas à la couche de
+données.
+
+Ces nouvelles comparaisons (aujourd'hui/hier, cette semaine/semaine dernière) sont calculées dans
+`UsageViewModel.recomputeFixedWindows(events:)` à partir de `allEvents` filtré par MODELS/PROJECT
+mais **pas** par le filtre RANGE — restreindre une comparaison jour/semaine sur jour/semaine fixe
+à une plage arbitraire n'aurait pas de sens. La tendance de coût semaine sur semaine
+d'`InsightEngine` utilise cette même fenêtre non filtrée par plage ; ses signaux "modèle sans
+tarif" et "taux de cache" utilisent en revanche les événements filtrés par plage normaux, pour
+refléter « ce qui est actuellement affiché » comme le reste du dashboard.
+
+**Piège Swift Charts découvert en construisant `CostPerHourChartView`** : un `BarMark` dont le
+`x` est un simple `Int` (24 cases horaires, sans unité type `.day` pour former des bandes) ne
+dessine silencieusement rien avec une largeur `.ratio(_:)` — le mark exige une largeur absolue
+`.fixed(_:)`. Ça a coûté une passe de debug (affichage temporaire des valeurs brutes de l'agrégat
+en overlay texte) avant de découvrir que les données étaient correctes depuis le début et que
+seul le paramètre de largeur du mark posait problème.
 
 ## Pipeline de release (signature, notarisation, Sparkle)
 `Scripts/release.sh` (adapté du template du projet voisin RTKInfos) fait, pour une version donnée :

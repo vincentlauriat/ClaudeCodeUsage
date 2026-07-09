@@ -213,3 +213,49 @@ mêmes fractions `[0, 0.25, 0.5, 0.75, 1.0]`. `UsageSeries` gagne `isCacheAxis` 
 groupe utiliser. Le résultat est fidèle à la capture mais garde la même incohérence
 mathématique assumée qu'à l'origine (deux échelles sur une même pile) — documenté explicitement
 dans `ARCHITECTURE.md`/`ARCHITECTURE_EN.md`.
+
+## Suite — Grille de cartes du dashboard : Proposition C + préparation Proposition A (2026-07-09)
+Vincent a partagé une capture d'un dashboard retail (grille de cartes KPI/graphiques/tableaux/
+checklist) et demandé une évaluation d'évolution visuelle. Démarche : 3 maquettes HTML
+comparables (mêmes données de démonstration, dispositions différentes — "A" miroir retail7 en
+grille 3×3, "B" dense/orientée tendances en 2 colonnes, "C" KPI-first à évolution minimale du
+code actuel), publiées en Artifact, revues avant tout code Swift. Décision de Vincent : **"vas y
+sur le C mais prepare la A"**.
+
+### Implémenté (Proposition C)
+`ContentView` gagne une `LazyVGrid` 2 colonnes entre les stat-cards et le `DailyUsageChartView`
+existant (inchangé) :
+- `SessionsPerWeekChartView` — line chart, semaine courante (emphase, bleu) vs semaine dernière
+  (contexte, gris)
+- `CostPerHourChartView` — bullet bar chart, aujourd'hui (emphase) superposé à hier (contexte),
+  avec un repère pointillé sur l'heure courante
+- `InsightsPanelView` — signaux automatiques dérivés par `InsightEngine` (tendance de coût
+  semaine sur semaine, modèles sans tarif dédié détecté, taux de cache)
+- `ModelMixView` — barre empilée horizontale, répartition du coût par famille de modèle
+  (Opus/Sonnet/Haiku/Fable), légende avec `$` et `%` par famille
+
+Ces 4 cartes consomment de nouveaux agrégats sur `UsageViewModel`
+(`recomputeFixedWindows(events:)`) : comparaisons "aujourd'hui vs hier" et "cette semaine vs
+semaine dernière", calculées à partir d'événements filtrés par MODELS/PROJECT mais **pas** par le
+filtre RANGE (une comparaison à fenêtre fixe n'a pas de sens restreinte à une plage arbitraire).
+
+### Préparation de la Proposition A (couche données seulement)
+Sur demande explicite ("prepare la A"), deux agrégats supplémentaires sont calculés et publiés
+dès maintenant bien qu'aucune vue ne les consomme encore : `YearlyUsage` (coût + sessions par
+année, pour la future carte "Sessions by year" à chiffre héros) et `MonthlyUsage` (coût par mois,
+pour la future carte "Cost per month"). La prochaine itération vers la grille 3×3 complète de la
+Proposition A n'aura donc qu'à écrire de nouvelles `View`, pas une nouvelle passe de calcul.
+
+### Bug Swift Charts trouvé et corrigé
+`CostPerHourChartView` n'affichait initialement aucune barre malgré des données correctes
+(vérifié par un overlay de debug temporaire affichant les valeurs brutes). Cause : `BarMark` avec
+un `x` de type `Int` simple (pas d'unité `.day` pour former des bandes, contrairement au
+graphique quotidien existant) ignore silencieusement une largeur `.ratio(_:)` — corrigé en
+largeur absolue `.fixed(_:)`. Documenté dans `ARCHITECTURE.md`/`ARCHITECTURE_EN.md` comme piège
+à éviter pour de futurs graphiques à axe X entier.
+
+### Hors scope de ce tour (backlog)
+Thème clair/sombre réel (`.preferredColorScheme(.dark)` toujours forcé) — décision de le
+supporter prise plus tôt dans la session mais pas redemandée explicitement dans "vas y sur le C",
+donc non implémentée ; vues pour `YearlyUsage`/`MonthlyUsage` ; passage éventuel à une grille 3×3
+complète.

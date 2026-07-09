@@ -3,7 +3,8 @@
 ## Overview
 Native macOS SwiftUI app that scans local Claude Code JSONL transcripts and renders a usage
 dashboard (sessions, turns, tokens, cache, editable estimated cost, a daily dual-Y-axis chart),
-with a project filter, a cost breakdown by project/agent/skill, and a named sessions list with
+a card grid of comparison charts (sessions/cost trends, automatic insights, model-family cost
+mix), a project filter, a cost breakdown by project/agent/skill, and a named sessions list with
 detail. The scan cache is persisted across launches.
 
 ## Data source
@@ -34,15 +35,26 @@ ClaudeCodeUsage/
     SessionInfo                     a session's title/slug/cwd (metadata not on every line)
     SessionSummary                  per-session aggregate (sessions list)
     BreakdownDimension / BreakdownRow  breakdown by project / agent / skill
+    HourlyUsage                     per-hour-of-day aggregate ("Cost per hour" card)
+    YearlyUsage / MonthlyUsage       per-year / per-month aggregate — computed and published,
+                                     no consuming view yet (groundwork for a future denser
+                                     dashboard layout, see "Card grid" below)
+    ModelFamily / ModelMixRow        the 4 pricing tiers as a fixed-order enum with a display
+                                     color, + one family's cost share ("Model mix" card)
+    Insight                         one row of the Insights & Alerts panel (level + text)
   Services/
     TranscriptScanner               incremental scan of *.jsonl files (events + SessionInfo),
                                      cache persisted to disk across launches
     PricingCalculator                cost estimation from UsageEvent list + PricingSettings
+    InsightEngine                    derives Insight rows from filtered events + week-over-week
+                                     cost (cost trend, unpriced models, cache hit rate)
   ViewModels/
     UsageViewModel                  filters (model/project/range), 30s auto-refresh, aggregation,
-                                     dimension breakdown, sessions, editable pricing
+                                     dimension breakdown, sessions, editable pricing, the fixed
+                                     today/yesterday and this-week/last-week comparisons, insights
   Views/
     ContentView, HeaderView, FilterBarView, StatCardView, DailyUsageChartView,
+    SessionsPerWeekChartView, CostPerHourChartView, InsightsPanelView, ModelMixView,
     BreakdownView, SessionsListView, SessionDetailView, PricingSettingsView
 ```
 
@@ -111,6 +123,30 @@ are normalized onto a shared 0...1 scale, each divided by the max of *its own* a
 two sets of `AxisMarks` (`.leading` formatted via `cacheMax`, `.trailing` formatted via `ioMax`)
 are drawn at the same fractions `[0, .25, .5, .75, 1]`. The result visually matches the original
 capture but keeps the same intentional mathematical inconsistency.
+
+## Card grid — dashboard evolution (Proposition C)
+Following a design exploration (3 HTML mockups comparing layouts, inspired by a retail-style
+dashboard reference), `ContentView` gained a 2-column `LazyVGrid` of comparison cards between the
+stat-card row and the existing daily chart: `SessionsPerWeekChartView` (this-week-vs-last-week
+line chart), `CostPerHourChartView` (today-vs-yesterday bullet bar chart), `InsightsPanelView`,
+and `ModelMixView`. This was the lowest-risk of the three mockups (touches the least existing
+data logic) — a denser "grid of independent cards" layout closer to the reference mockup (bubble
+→ bar/hero-figure equivalents, weekly/monthly cards) was scoped as a follow-up once it earns its
+own cards; `YearlyUsage`/`MonthlyUsage` already exist for that (see Models above), so that
+iteration is a new-View-only change, not a new-data-layer change.
+
+These new comparisons (today/yesterday, this-week/last-week) are computed in
+`UsageViewModel.recomputeFixedWindows(events:)` from `allEvents` filtered by MODELS/PROJECT but
+**not** the RANGE filter — clipping a fixed day/week-over-day/week comparison to an arbitrary
+date range wouldn't mean anything. `InsightEngine`'s week-over-week cost trend uses that same
+unranged window; its unpriced-model and cache-hit-rate signals use the normal range-filtered
+events instead, so they reflect "what's currently in view" like the rest of the dashboard.
+
+**Swift Charts gotcha found while building `CostPerHourChartView`**: a `BarMark` whose `x` is a
+plain `Int` (24 hour buckets, no `.day`-style unit to band against) silently draws nothing when
+given a `.ratio(_:)` width — the mark requires an absolute `.fixed(_:)` width instead. This cost
+a debug pass (temporarily overlaying the raw aggregate values as on-screen text) before finding
+that the data was correct all along and only the mark's width parameter was the problem.
 
 ## Release pipeline (signing, notarization, Sparkle)
 `Scripts/release.sh` (adapted from the sibling project RTKInfos' template) does, given a version:

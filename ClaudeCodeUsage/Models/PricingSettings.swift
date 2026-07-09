@@ -22,14 +22,31 @@ struct PricingSettings: Codable, Equatable {
     )
 
     /// Maps a model identifier (e.g. "claude-opus-4-8", "claude-sonnet-5",
-    /// "claude-haiku-4-5-20251001") to its pricing tier. Falls back to Sonnet-tier rates for
-    /// unrecognized models rather than crashing or under/over-estimating wildly.
-    func pricing(forModel modelId: String) -> ModelPricing {
+    /// "claude-haiku-4-5-20251001") to its pricing family. Falls back to Sonnet for unrecognized
+    /// models rather than crashing or under/over-estimating wildly — the single place this
+    /// substring matching happens; `pricing(forModel:)` builds on it.
+    func family(forModel modelId: String) -> ModelFamily {
         let id = modelId.lowercased()
-        if id.contains("opus") { return opus }
-        if id.contains("haiku") { return haiku }
-        if id.contains("fable") { return fable }
-        return sonnet
+        if id.contains("opus") { return .opus }
+        if id.contains("haiku") { return .haiku }
+        if id.contains("fable") { return .fable }
+        return .sonnet
+    }
+
+    func pricing(forModel modelId: String) -> ModelPricing {
+        switch family(forModel: modelId) {
+        case .opus: opus
+        case .sonnet: sonnet
+        case .haiku: haiku
+        case .fable: fable
+        }
+    }
+
+    /// Whether the model id actually named a known family, rather than silently falling back to
+    /// the Sonnet default — used by the Insights panel to flag models that need a rate confirmed.
+    func hasDedicatedTier(forModel modelId: String) -> Bool {
+        let id = modelId.lowercased()
+        return id.contains("opus") || id.contains("sonnet") || id.contains("haiku") || id.contains("fable")
     }
 
     private static let userDefaultsKey = "pricingSettingsV1"

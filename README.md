@@ -13,6 +13,9 @@ writes under `~/.claude/projects/**`.
   Est. Cost
 - **Daily usage chart** — dual Y-axis stacked bar chart of the last N days (Cache on a left
   "millions" axis, Input/Output on a right "hundreds of thousands" axis, Swift Charts)
+- **Comparison card grid** — sessions-per-week and cost-per-hour trend charts (this
+  week/today vs. last week/yesterday), an automatic Insights & Alerts panel (cost swings,
+  models missing dedicated pricing, cache hit rate), and a per-model-family cost mix bar
 - **Filters** — by model, by project (working directory), and by date range (Today / This Week /
   This Month / Prev Month / 7d / 30d / 90d / All)
 - **Breakdown panel** — cost/token table by Project, Agent, or Skill (switchable), sorted by cost
