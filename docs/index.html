@@ -10,6 +10,10 @@
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%2310b981'/%3E%3Cpath d='M22 64 L40 46 L54 58 L78 32' stroke='white' stroke-width='8' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='78' cy='32' r='7' fill='white'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="assets/base.css">
 <style>
   :root{
     --bg:#0a0f0d; --bg2:#0d1512; --panel:#111b17; --line:#1f312a;
@@ -22,7 +26,7 @@
   body{background:var(--bg);color:var(--txt);font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
   a{color:inherit;text-decoration:none}
   .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
-  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,"Cascadia Code",monospace}
+  .mono{font-family:var(--font-mono)}
 
   nav{position:sticky;top:0;z-index:20;backdrop-filter:saturate(160%) blur(12px);background:rgba(10,15,13,.72);border-bottom:1px solid var(--line)}
   nav .wrap{display:flex;align-items:center;justify-content:space-between;height:62px}
@@ -66,7 +70,7 @@
   .bar{flex:1;background:linear-gradient(180deg,#34d399,#10b981);border-radius:5px 5px 2px 2px;position:relative;min-height:6px}
   .bar span{position:absolute;top:-15px;left:0;right:0;text-align:center;font-size:9.5px;color:var(--muted)}
   .cmds{display:flex;flex-direction:column;gap:7px}
-  .cmd{display:flex;justify-content:space-between;align-items:center;font:12px/1 ui-monospace,Menlo,monospace;color:var(--muted);padding:7px 10px;background:var(--panel);border:1px solid var(--line);border-radius:8px}
+  .cmd{display:flex;justify-content:space-between;align-items:center;font:12px/1 var(--font-mono);color:var(--muted);padding:7px 10px;background:var(--panel);border:1px solid var(--line);border-radius:8px}
   .cmd b{color:var(--accent);font-weight:700}
 
   section{padding:74px 0;border-top:1px solid var(--line)}
@@ -100,26 +104,19 @@
   .step::before{counter-increment:s;content:counter(s);position:absolute;top:-14px;left:22px;width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#10b981,#34d399);color:#04130d;font-weight:800;display:grid;place-items:center;font-size:15px}
   .step h3{margin:6px 0 5px;font-size:16px}
   .step p{color:var(--muted);font-size:14.5px}
-  .step code{background:#06100c;color:var(--accent);border-radius:6px;padding:2px 7px;font:12.5px/1.4 ui-monospace,Menlo,monospace}
+  .step code{background:#06100c;color:var(--accent);border-radius:6px;padding:2px 7px;font:12.5px/1.4 var(--font-mono)}
 
   .final{text-align:center;background:radial-gradient(620px 280px at 50% 120%,rgba(16,185,129,.16),transparent 66%)}
   .final .cta{justify-content:center}
   footer{border-top:1px solid var(--line);padding:34px 0;color:var(--muted);font-size:14px;text-align:center}
   footer a{color:var(--accent);font-weight:600}
-  code{background:#06100c;border:1px solid var(--line);border-radius:6px;padding:2px 7px;font:13px/1.4 ui-monospace,Menlo,monospace;color:var(--accent)}
+  code{background:#06100c;border:1px solid var(--line);border-radius:6px;padding:2px 7px;font:13px/1.4 var(--font-mono);color:var(--accent)}
 
   @media(max-width:880px){.hero-grid,.why{grid-template-columns:1fr;gap:30px}.why{padding:28px}.g3,.steps{grid-template-columns:1fr}.nav-links a:not(.btn){display:none}}
-
-  /* a11y : respecter la préférence système de mouvement réduit */
-  @media (prefers-reduced-motion: reduce){
-    *,*::before,*::after{
-      animation-duration:.01ms !important;animation-iteration-count:1 !important;
-      transition-duration:.01ms !important;scroll-behavior:auto !important;
-    }
-  }
 </style>
 </head>
 <body>
+<a class="skip" href="#top">Skip to content</a>
 
 <nav><div class="wrap">
   <a class="brand" href="#top"><span class="logo"><svg width="19" height="19" viewBox="0 0 100 100"><path d="M22 64 L40 46 L54 58 L78 32" stroke="#04130d" stroke-width="9" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="78" cy="32" r="7" fill="#04130d"/></svg></span>ClaudeCodeUsage</a>
