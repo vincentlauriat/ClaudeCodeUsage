@@ -10,6 +10,13 @@ build/
 DerivedData/
 .build/
 
+# Code coverage profiles (dropped by test/build runs)
+*.profraw
+*.profdata
+
+# oh-my-claudecode local state (matches .omc/ at any depth, e.g. docs/.omc/)
+.omc/
+
 # Release artifacts (published as GitHub Release assets, not committed)
 *.dmg
 .sparkle-tools/
