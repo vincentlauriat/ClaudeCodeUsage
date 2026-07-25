@@ -176,6 +176,29 @@ seul le paramètre de largeur du mark posait problème.
 6. Signe le DMG avec la clé Sparkle EdDSA (`sign_update --account MarkdownViewer` — cette app
    réutilise la clé partagée entre les apps macOS de Vincent plutôt que d'en générer une propre)
    et écrit `appcast.xml` à la racine du repo, servi via `raw.githubusercontent.com`.
+7. Publie : crée la GitHub release avec le DMG attaché (`gh release create`, tag posé sur le
+   `HEAD` courant, notes issues de `release/release-notes-<version>.md` s'il existe, sinon
+   `--generate-notes`), puis commit et push `appcast.xml`. **L'ordre compte** — la release doit
+   exister avant que le flux annonçant l'URL de son DMG ne soit publié, sinon les clients
+   Sparkle tombent sur un 404.
+
+Tout ce qui peut invalider une release est préflighté en tête de script, pour qu'un prérequis
+manquant échoue en quelques secondes plutôt qu'après 5 minutes de notarisation :
+
+- **`CURRENT_PROJECT_VERSION` strictement supérieur au `sparkle:version` déjà dans
+  `appcast.xml`.** Sparkle compare `CFBundleVersion`, pas la version marketing — ne bumper que
+  `MARKETING_VERSION` publierait un flux qui ne propose la mise à jour à personne. Ce contrôle
+  s'applique même avec `PUBLISH=0`, puisque l'appcast est écrit dans tous les cas.
+- `gh` installé et authentifié, et aucune release existante pour cette version.
+- Aucun tag `v<version>` résiduel, local ou sur `origin` — les releases sont taguées côté serveur
+  par `gh`, donc les tags précédents n'existent en général que sur le distant.
+- Working tree propre (sauf `appcast.xml`, réécrit par l'étape 10) : le DMG est buildé depuis le
+  working tree alors que le tag est posé sur `HEAD` — un tree sale livre donc un binaire que son
+  tag ne décrit pas.
+- `HEAD` déjà poussé sur sa branche distante, puisque le tag en est issu.
+
+La publication demande confirmation sur un TTY ; `PUBLISH_YES=1` saute la question et
+`PUBLISH=0` s'arrête après le DMG en affichant les commandes manuelles.
 
 `SUFeedURL`/`SUPublicEDKey` vivent dans `Info.plist` ; `AppDelegate` (via
 `@NSApplicationDelegateAdaptor`) câble `SPUStandardUpdaterController` et un item de menu "Check
