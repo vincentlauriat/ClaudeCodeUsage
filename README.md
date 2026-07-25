@@ -60,13 +60,16 @@ open ClaudeCodeUsage.xcodeproj
 
 ```bash
 SIGNING_IDENTITY="Developer ID Application: …" ./Scripts/release.sh 1.0.1
-gh release create v1.0.1 ./ClaudeCodeUsage-1.0.1.dmg --title "v1.0.1" --notes "…"
-git add appcast.xml && git commit -m "release: appcast for v1.0.1" && git push
 ```
 
 `Scripts/release.sh` builds, signs (Developer ID + Hardened Runtime), notarizes, staples,
-packages the DMG, and Sparkle-signs it, writing `appcast.xml`. See `ARCHITECTURE_EN.md` for the
-full pipeline.
+packages the DMG into `release/`, Sparkle-signs it and writes `appcast.xml` — then publishes:
+it creates the GitHub release with the DMG attached and pushes `appcast.xml`, so Sparkle
+clients are offered the update on their next check. Release notes come from
+`release/release-notes-<version>.md` when that file exists, otherwise from the commit history.
+
+Use `PUBLISH=0 ./Scripts/release.sh 1.0.1` to stop after the DMG and publish by hand, or
+`PUBLISH_YES=1` to skip the confirmation prompt. See `ARCHITECTURE_EN.md` for the full pipeline.
 
 ## Notes
 

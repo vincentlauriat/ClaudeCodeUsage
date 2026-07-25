@@ -162,6 +162,28 @@ that the data was correct all along and only the mark's width parameter was the 
 6. Signs the DMG with the Sparkle EdDSA key (`sign_update --account MarkdownViewer` — this app
    reuses the key shared across Vincent's macOS apps rather than minting its own) and writes
    `appcast.xml` at the repo root, served via `raw.githubusercontent.com`.
+7. Publishes: creates the GitHub release with the DMG attached (`gh release create`, tag cut from
+   the current `HEAD`, notes from `release/release-notes-<version>.md` when present, otherwise
+   `--generate-notes`), then commits and pushes `appcast.xml`. **Order matters** — the release
+   must exist before the feed advertising its DMG URL goes live, or Sparkle clients hit a 404.
+
+Everything that can invalidate a release is preflighted at the top of the script, so a missing
+prerequisite fails in seconds rather than after a 5-minute notarization:
+
+- **`CURRENT_PROJECT_VERSION` strictly greater than the `sparkle:version` already in
+  `appcast.xml`.** Sparkle compares `CFBundleVersion`, not the marketing version — bumping only
+  `MARKETING_VERSION` would publish a feed that offers the update to nobody. This one runs even
+  under `PUBLISH=0`, since the appcast is written either way.
+- `gh` installed and authenticated, and no existing release for that version.
+- No leftover `v<version>` tag, local or on `origin` — releases are tagged server-side by `gh`,
+  so previous tags typically exist only on the remote.
+- Clean working tree (`appcast.xml` excepted, step 10 rewrites it): the DMG is built from the
+  working tree while the tag is cut from `HEAD`, so a dirty tree ships a binary its tag does
+  not describe.
+- `HEAD` already pushed to its remote branch, since the tag is cut from it.
+
+It asks for confirmation on a TTY; `PUBLISH_YES=1` skips the prompt and `PUBLISH=0` stops after
+the DMG, printing the manual commands instead.
 
 `SUFeedURL`/`SUPublicEDKey` live in `Info.plist`; `AppDelegate` (via
 `@NSApplicationDelegateAdaptor`) wires `SPUStandardUpdaterController` and a "Check for
