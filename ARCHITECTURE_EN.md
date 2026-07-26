@@ -174,6 +174,12 @@ prerequisite fails in seconds rather than after a 5-minute notarization:
   `appcast.xml`.** Sparkle compares `CFBundleVersion`, not the marketing version — bumping only
   `MARKETING_VERSION` would publish a feed that offers the update to nobody. This one runs even
   under `PUBLISH=0`, since the appcast is written either way.
+- **The Sparkle signing key is in the keychain _and_ is the one the app ships** — the script
+  compares `generate_keys -p` against `Info.plist`'s `SUPublicEDKey`. A missing key aborts before
+  the build (`PUBLISH=0` downgrades it to a warning and skips the appcast step entirely); a
+  _different_ key always aborts, since signing with it would produce a feed every existing
+  install rejects. Added after 1.3.1, where the key had vanished from the keychain and the script
+  only found out at step 9, after a successful five-minute notarization.
 - `gh` installed and authenticated, and no existing release for that version.
 - No leftover `v<version>` tag, local or on `origin` — releases are tagged server-side by `gh`,
   so previous tags typically exist only on the remote.

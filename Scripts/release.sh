@@ -102,6 +102,47 @@ if [ "$PUBLISH" = "1" ]; then
   fi
 fi
 
+# 1c. Sparkle signing key: must exist AND be the one this app ships, checked before the build.
+# Learned the hard way on 1.3.1 — the key had vanished from the keychain and the script only
+# found out at step 9, after a successful five-minute notarization.
+SPARKLE_VERSION="2.9.1"
+SPARKLE_TOOLS="$ROOT/.sparkle-tools"
+SPARKLE_ACCOUNT="${SPARKLE_ACCOUNT:-MarkdownViewer}"
+if [ ! -x "$SPARKLE_TOOLS/bin/sign_update" ]; then
+  echo "→ Downloading Sparkle $SPARKLE_VERSION tools"
+  mkdir -p "$SPARKLE_TOOLS"
+  curl -fsSL "https://github.com/sparkle-project/Sparkle/releases/download/$SPARKLE_VERSION/Sparkle-$SPARKLE_VERSION.tar.xz" \
+    | tar -xJ -C "$SPARKLE_TOOLS"
+fi
+
+EXPECTED_PUBKEY="$(/usr/libexec/PlistBuddy -c "Print :SUPublicEDKey" "$ROOT/ClaudeCodeUsage/Info.plist" 2>/dev/null || true)"
+ACTUAL_PUBKEY="$("$SPARKLE_TOOLS/bin/generate_keys" -p --account "$SPARKLE_ACCOUNT" 2>/dev/null || true)"
+# generate_keys prints "ERROR: No existing signing key found!" on stdout, not stderr, so a
+# non-empty value proves nothing — only accept a well-formed ed25519 public key (32 bytes).
+if ! printf '%s' "$ACTUAL_PUBKEY" | grep -qE '^[A-Za-z0-9+/]{43}=$'; then
+  ACTUAL_PUBKEY=""
+fi
+if [ -z "$ACTUAL_PUBKEY" ]; then
+  echo "✗ No Sparkle signing key in the keychain for account \"$SPARKLE_ACCOUNT\"." >&2
+  echo "  Updates cannot be signed, so the appcast cannot be published." >&2
+  echo "  DO NOT run generate_keys to make a new one: this key is shared by several of your" >&2
+  echo "  apps, and replacing it permanently breaks auto-update for everyone already installed." >&2
+  echo "  Recover it instead (Keychain Access across all keychains, a Time Machine copy of" >&2
+  echo "  ~/Library/Keychains, or 'generate_keys -x' on another Mac then '-f' here)." >&2
+  echo "  To build the DMG anyway and publish by hand later: PUBLISH=0 $0 $VERSION" >&2
+  [ "$PUBLISH" = "1" ] && exit 1
+  echo "  (PUBLISH=0 — continuing, the appcast step will be skipped.)" >&2
+  SPARKLE_KEY_AVAILABLE=0
+fi
+SPARKLE_KEY_AVAILABLE="${SPARKLE_KEY_AVAILABLE:-1}"
+if [ -n "$ACTUAL_PUBKEY" ] && [ -n "$EXPECTED_PUBKEY" ] && [ "$ACTUAL_PUBKEY" != "$EXPECTED_PUBKEY" ]; then
+  echo "✗ The keychain key for \"$SPARKLE_ACCOUNT\" is not the one this app ships." >&2
+  echo "    Info.plist SUPublicEDKey: $EXPECTED_PUBKEY" >&2
+  echo "    keychain public key:      $ACTUAL_PUBKEY" >&2
+  echo "  Signing with it would produce an appcast every existing install rejects." >&2
+  exit 1
+fi
+
 # 2. Regenerate Xcode project
 if ! command -v xcodegen >/dev/null 2>&1; then
   echo "✗ xcodegen not found. Install with: brew install xcodegen" >&2
@@ -226,18 +267,20 @@ echo "→ Stapling notarization ticket"
 xcrun stapler staple "$DMG"
 xcrun stapler validate "$DMG"
 
-# 9. Sparkle EdDSA signature + appcast.xml
-SPARKLE_VERSION="2.9.1"
-SPARKLE_TOOLS="$ROOT/.sparkle-tools"
-if [ ! -x "$SPARKLE_TOOLS/bin/sign_update" ]; then
-  echo "→ Downloading Sparkle $SPARKLE_VERSION tools"
-  mkdir -p "$SPARKLE_TOOLS"
-  curl -fsSL "https://github.com/sparkle-project/Sparkle/releases/download/$SPARKLE_VERSION/Sparkle-$SPARKLE_VERSION.tar.xz" \
-    | tar -xJ -C "$SPARKLE_TOOLS"
+# 9. Sparkle EdDSA signature + appcast.xml (tools and key already checked in step 1c)
+if [ "$SPARKLE_KEY_AVAILABLE" != "1" ]; then
+  DMG_SIZE=$(ls -lh "$DMG" | awk '{print $5}')
+  echo ""
+  echo "✅ Built, signed, notarized, stapled: $DMG ($DMG_SIZE)"
+  echo "⚠️  NOT Sparkle-signed — appcast.xml left untouched, no update will be advertised."
+  echo "   Recover the signing key, then sign this very DMG (no rebuild, no re-notarization):"
+  echo "     .sparkle-tools/bin/sign_update --account \"$SPARKLE_ACCOUNT\" \"$DMG\""
+  echo "   and add the resulting edSignature to appcast.xml."
+  exit 0
 fi
 
 echo "→ Signing DMG with Sparkle EdDSA key"
-SPARKLE_SIG_LINE=$("$SPARKLE_TOOLS/bin/sign_update" --account "MarkdownViewer" "$DMG")
+SPARKLE_SIG_LINE=$("$SPARKLE_TOOLS/bin/sign_update" --account "$SPARKLE_ACCOUNT" "$DMG")
 
 # sparkle:version must be CFBundleVersion (monotonic integer), NOT the marketing version.
 BUILD_NUMBER=$(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$APP/Contents/Info.plist")
