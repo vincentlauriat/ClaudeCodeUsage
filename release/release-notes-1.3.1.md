@@ -1,3 +1,7 @@
+> **Note.** This build is not yet advertised to Sparkle: `appcast.xml` still points at v1.3.0, so
+> existing installs will not be offered the update automatically for now. Download the DMG below
+> to get it. The feed will be updated shortly.
+
 ## Fixed
 
 - **Sessions per week — weekly total.** The footer summed the per-weekday counts, but each day is
