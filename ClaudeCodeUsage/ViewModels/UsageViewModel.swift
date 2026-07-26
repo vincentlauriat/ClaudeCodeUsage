@@ -52,6 +52,10 @@ final class UsageViewModel: ObservableObject {
     @Published private(set) var hourlyUsageToday: [HourlyUsage] = []
     @Published private(set) var sessionsLastWeekByWeekday: [Int] = Array(repeating: 0, count: 7)
     @Published private(set) var sessionsThisWeekByWeekday: [Int] = Array(repeating: 0, count: 7)
+    /// Distinct sessions over the whole week. Not the sum of the per-weekday counts above: those
+    /// dedupe within a day, so a session spanning midnight legitimately appears in two days.
+    @Published private(set) var sessionsLastWeekTotal: Int = 0
+    @Published private(set) var sessionsThisWeekTotal: Int = 0
     @Published private(set) var yearlyUsage: [YearlyUsage] = []
     @Published private(set) var monthlyUsage: [MonthlyUsage] = []
     @Published private(set) var modelMix: [ModelMixRow] = []
@@ -232,6 +236,8 @@ final class UsageViewModel: ObservableObject {
         let lastWeekStart = isoCalendar.date(byAdding: .day, value: -7, to: thisWeekStart) ?? thisWeekStart
         sessionsThisWeekByWeekday = computeWeeklySessionCounts(events: unrangedEvents, weekStart: thisWeekStart, calendar: isoCalendar)
         sessionsLastWeekByWeekday = computeWeeklySessionCounts(events: unrangedEvents, weekStart: lastWeekStart, calendar: isoCalendar)
+        sessionsThisWeekTotal = computeWeeklySessionTotal(events: unrangedEvents, weekStart: thisWeekStart, calendar: isoCalendar)
+        sessionsLastWeekTotal = computeWeeklySessionTotal(events: unrangedEvents, weekStart: lastWeekStart, calendar: isoCalendar)
         let thisWeekCostUSD = computeWeeklyCost(events: unrangedEvents, weekStart: thisWeekStart, calendar: isoCalendar)
         let lastWeekCostUSD = computeWeeklyCost(events: unrangedEvents, weekStart: lastWeekStart, calendar: isoCalendar)
 
@@ -272,6 +278,17 @@ final class UsageViewModel: ObservableObject {
             let sessionIds = events.filter { $0.timestamp >= dayStart && $0.timestamp < dayEnd }.map(\.sessionId)
             return Set(sessionIds).count
         }
+    }
+
+    /// Distinct sessions across the whole week, deduped once over the 7-day window — summing
+    /// `computeWeeklySessionCounts` instead would count a session spanning midnight twice.
+    private func computeWeeklySessionTotal(events: [UsageEvent], weekStart: Date, calendar: Calendar) -> Int {
+        guard let weekEnd = calendar.date(byAdding: .day, value: 7, to: weekStart) else { return 0 }
+        var sessionIds = Set<String>()
+        for event in events where event.timestamp >= weekStart && event.timestamp < weekEnd {
+            sessionIds.insert(event.sessionId)
+        }
+        return sessionIds.count
     }
 
     private func computeWeeklyCost(events: [UsageEvent], weekStart: Date, calendar: Calendar) -> Double {

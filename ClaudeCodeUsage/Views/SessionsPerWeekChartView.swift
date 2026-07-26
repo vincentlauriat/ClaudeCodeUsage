@@ -7,6 +7,10 @@ import Charts
 struct SessionsPerWeekChartView: View {
     let lastWeek: [Int] // 7 values, Monday...Sunday
     let thisWeek: [Int] // 7 values, Monday...Sunday
+    /// Distinct sessions over each week. Deliberately not `lastWeek.reduce(0, +)`: the per-weekday
+    /// values dedupe within a day, so a session spanning midnight counts in two of them.
+    let lastWeekTotal: Int
+    let thisWeekTotal: Int
 
     private static let weekdayLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
@@ -81,13 +85,13 @@ struct SessionsPerWeekChartView: View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
                 Text("LAST WEEK").font(.caption2).foregroundStyle(Theme.textSecondary)
-                Text("\(lastWeek.reduce(0, +))")
+                Text("\(lastWeekTotal)")
                     .font(.title3).fontWeight(.semibold).foregroundStyle(Theme.textPrimary)
             }
             Spacer()
             VStack(alignment: .trailing, spacing: 2) {
                 Text("THIS WEEK").font(.caption2).foregroundStyle(Theme.textSecondary)
-                Text("\(thisWeek.reduce(0, +))")
+                Text("\(thisWeekTotal)")
                     .font(.title3).fontWeight(.semibold).foregroundStyle(Theme.accentBlue)
             }
         }

@@ -19,7 +19,9 @@ struct ContentView: View {
                     LazyVGrid(columns: cardColumns, spacing: 16) {
                         SessionsPerWeekChartView(
                             lastWeek: viewModel.sessionsLastWeekByWeekday,
-                            thisWeek: viewModel.sessionsThisWeekByWeekday
+                            thisWeek: viewModel.sessionsThisWeekByWeekday,
+                            lastWeekTotal: viewModel.sessionsLastWeekTotal,
+                            thisWeekTotal: viewModel.sessionsThisWeekTotal
                         )
                         CostPerHourChartView(
                             yesterday: viewModel.hourlyUsageYesterday,
