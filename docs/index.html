@@ -113,46 +113,58 @@
   code{background:#06100c;border:1px solid var(--line);border-radius:6px;padding:2px 7px;font:13px/1.4 var(--font-mono);color:var(--accent)}
 
   @media(max-width:880px){.hero-grid,.why{grid-template-columns:1fr;gap:30px}.why{padding:28px}.g3,.steps{grid-template-columns:1fr}.nav-links a:not(.btn){display:none}}
+
+  .langtog{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;flex:none}
+  .langtog button{background:transparent;border:0;color:var(--muted);font:600 12.5px/1 var(--font-mono);
+    padding:0 10px;min-height:36px;cursor:pointer}
+  .langtog button+button{border-left:1px solid var(--line)}
+  .langtog button:hover{color:var(--txt)}
+  .langtog button.on{background:var(--accent);color:var(--on-accent)}
 </style>
 </head>
 <body>
-<a class="skip" href="#top">Skip to content</a>
+<a class="skip" href="#top"><span class="en">Skip to content</span><span class="fr">Aller au contenu</span><span class="zh">跳至內容</span></a>
 
 <nav><div class="wrap">
   <a class="brand" href="#top"><span class="logo"><svg width="19" height="19" viewBox="0 0 100 100"><path d="M22 64 L40 46 L54 58 L78 32" stroke="#04130d" stroke-width="9" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="78" cy="32" r="7" fill="#04130d"/></svg></span>ClaudeCodeUsage</a>
   <div class="nav-links">
-    <a href="#features">Features</a>
-    <a href="#screenshots">Screenshots</a>
-    <a href="#why">Why</a>
-    <a href="#install">Install</a>
+    <a href="#features"><span class="en">Features</span><span class="fr">Fonctions</span><span class="zh">功能</span></a>
+    <a href="#screenshots"><span class="en">Screenshots</span><span class="fr">Captures</span><span class="zh">畫面</span></a>
+    <a href="#why"><span class="en">Why</span><span class="fr">Pourquoi</span><span class="zh">為什麼</span></a>
+    <a href="#install"><span class="en">Install</span><span class="fr">Installer</span><span class="zh">安裝</span></a>
     <a href="https://github.com/vincentlauriat/ClaudeCodeUsage">GitHub</a>
-    <a class="btn btn-primary btn-sm" href="https://github.com/vincentlauriat/ClaudeCodeUsage/releases/latest">Download</a>
+    <div class="langtog" role="group" aria-label="Language / Langue / 語言">
+    <button type="button" data-lang="en" class="on" onclick="setLang('en')">EN</button>
+    <button type="button" data-lang="fr" onclick="setLang('fr')">FR</button>
+    <button type="button" data-lang="zh" onclick="setLang('zh')">中文</button>
+  </div>
+    <a class="btn btn-primary btn-sm" href="https://github.com/vincentlauriat/ClaudeCodeUsage/releases/latest"><span class="en">Download</span><span class="fr">Télécharger</span><span class="zh">下載</span></a>
   </div>
 </div></nav>
 
 <header id="top"><div class="wrap">
   <div class="hero-grid">
     <div>
-      <span class="pill">📊 Built for <b>Claude Code</b> — sessions, tokens, cache & cost</span>
-      <h1>Your Claude Code usage,<br><span class="grad">visible at a glance.</span></h1>
-      <p class="sub">Claude Code quietly writes usage data to local transcripts on every turn. ClaudeCodeUsage turns that into a dashboard you can actually read — sessions, turns, tokens, prompt cache and estimated cost, filterable by model and date range, with a daily usage chart.</p>
+      <span class="pill">📊 <span class="en">Built for <b>Claude Code</b> — sessions, tokens, cache & cost</span><span class="fr">Conçu pour <b>Claude Code</b> — sessions, tokens, cache et coût</span><span class="zh">專為 <b>Claude Code</b> 打造——工作階段、token、快取與成本</span></span>
+      <h1><span class="en">Your Claude Code usage,<br><span class="grad">visible at a glance.</span></span><span class="fr">Votre usage de Claude Code,<br><span class="grad">visible d'un coup d'œil.</span></span><span class="zh">你的 Claude Code 用量，<span class="grad">一眼看完。</span></span></h1>
+      <p class="sub"><span class="en">Claude Code quietly writes usage data to local transcripts on every turn. ClaudeCodeUsage turns that into a dashboard you can actually read — sessions, turns, tokens, prompt cache and estimated cost, filterable by model and date range, with a daily usage chart.</span><span class="fr">Claude Code écrit discrètement des données d'usage dans des transcripts locaux à chaque tour. ClaudeCodeUsage en fait un tableau de bord réellement lisible — sessions, tours, tokens, cache de prompt et coût estimé, filtrables par modèle et par période, avec un graphique d'usage quotidien.</span><span class="zh">Claude Code 每一輪都會默默把用量寫進本機的 transcript。ClaudeCodeUsage 把這些資料變成一個真正讀得懂的儀表板——工作階段、輪次、token、prompt 快取與估計成本，可依模型與時間範圍篩選，並附每日用量圖表。</span></p>
       <div class="cta">
-        <a class="btn btn-primary" href="https://github.com/vincentlauriat/ClaudeCodeUsage/releases/latest">⬇︎ Download for macOS</a>
-        <a class="btn btn-ghost" href="https://github.com/vincentlauriat/ClaudeCodeUsage">View on GitHub</a>
+        <a class="btn btn-primary" href="https://github.com/vincentlauriat/ClaudeCodeUsage/releases/latest">⬇︎ <span class="en">Download for macOS</span><span class="fr">Télécharger pour macOS</span><span class="zh">下載 macOS 版</span></a>
+        <a class="btn btn-ghost" href="https://github.com/vincentlauriat/ClaudeCodeUsage"><span class="en">View on GitHub</span><span class="fr">Voir sur GitHub</span><span class="zh">在 GitHub 上檢視</span></a>
       </div>
-      <p class="meta"><b>Free &amp; open-source (MIT)</b> · macOS 14+ · Reads local transcripts only, nothing leaves your Mac</p>
+      <p class="meta"><span class="en"><b>Free &amp; open-source (MIT)</b> · macOS 14+ · Reads local transcripts only, nothing leaves your Mac</span><span class="fr"><b>Gratuit et open source (MIT)</b> · macOS 14+ · Lit uniquement les transcripts locaux, rien ne quitte votre Mac</span><span class="zh"><b>免費開源（MIT）</b> · macOS 14+ · 只讀取本機 transcript，任何資料都不會離開你的 Mac</span></p>
     </div>
 
     <div class="winwrap">
       <div class="win" role="img" aria-label="ClaudeCodeUsage dashboard: stat cards for sessions, turns, tokens and cost, plus a daily usage chart">
-        <div class="titlebar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="name"><b>Claude Code Usage</b> — 30d</span></div>
+        <div class="titlebar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="name"><b>Claude Code Usage</b> — <span class="en">30d</span><span class="fr">30 j</span><span class="zh">30 天</span></span></div>
         <div class="dash">
           <div class="kpis">
-            <div class="kpi"><div class="n">63</div><div class="l">Sessions</div></div>
-            <div class="kpi"><div class="n">2.2K</div><div class="l">Turns</div></div>
-            <div class="kpi"><div class="n">$227</div><div class="l">Est. cost</div></div>
+            <div class="kpi"><div class="n">63</div><div class="l"><span class="en">Sessions</span><span class="fr">Sessions</span><span class="zh">工作階段</span></div></div>
+            <div class="kpi"><div class="n">2.2K</div><div class="l"><span class="en">Turns</span><span class="fr">Tours</span><span class="zh">輪次</span></div></div>
+            <div class="kpi"><div class="n">$227</div><div class="l"><span class="en">Est. cost</span><span class="fr">Coût est.</span><span class="zh">估計成本</span></div></div>
           </div>
-          <div class="chartlabel">Last 30 days · daily tokens</div>
+          <div class="chartlabel"><span class="en">Last 30 days · daily tokens</span><span class="fr">30 derniers jours · tokens/jour</span><span class="zh">最近 30 天 · 每日 token</span></div>
           <div class="chart" aria-hidden="true">
             <div class="bar" style="height:28%"></div>
             <div class="bar" style="height:44%"></div>
@@ -165,7 +177,7 @@
           <div class="cmds">
             <div class="cmd"><span>claude-opus-4-8</span><b>21.9M in</b></div>
             <div class="cmd"><span>claude-sonnet-5</span><b>31.1M out</b></div>
-            <div class="cmd"><span>cache read</span><b>5.19B</b></div>
+            <div class="cmd"><span><span class="en">cache read</span><span class="fr">lecture cache</span><span class="zh">快取讀取</span></span><b>5.19B</b></div>
           </div>
         </div>
       </div>
@@ -175,34 +187,34 @@
 
 <section id="features"><div class="wrap">
   <div class="center">
-    <p class="eyebrow">## features</p>
-    <h2>Everything Claude Code tracks, made visible</h2>
-    <p class="lead">A tiny native app that reads the JSONL transcripts Claude Code already writes to <code class="mono">~/.claude/projects</code>, and turns them into a dashboard.</p>
+    <p class="eyebrow"><span class="en">## features</span><span class="fr">## fonctions</span><span class="zh">## 功能</span></p>
+    <h2><span class="en">Everything Claude Code tracks, made visible</span><span class="fr">Tout ce que Claude Code enregistre, rendu visible</span><span class="zh">把 Claude Code 記錄的一切，變成看得見的</span></h2>
+    <p class="lead"><span class="en">A tiny native app that reads the JSONL transcripts Claude Code already writes to <code class="mono">~/.claude/projects</code>, and turns them into a dashboard.</span><span class="fr">Une petite app native qui lit les transcripts JSONL que Claude Code écrit déjà dans <code class="mono">~/.claude/projects</code>, et en fait un tableau de bord.</span><span class="zh">一個小巧的原生應用程式，讀取 Claude Code 本來就會寫進 <code class="mono">~/.claude/projects</code> 的 JSONL transcript，並把它們變成儀表板。</span></p>
   </div>
   <div class="grid g3">
-    <div class="card"><div class="ico">🔒</div><h3>Local &amp; private</h3><p>Reads your local transcripts only. Nothing is ever uploaded — the app has no network calls beyond checking for its own updates.</p></div>
-    <div class="card"><div class="ico">📈</div><h3>Daily usage chart</h3><p>A stacked chart of input, output, cache read and cache creation tokens, per day.</p></div>
-    <div class="card"><div class="ico">🧮</div><h3>Estimated cost</h3><p>Approximate USD cost per model family, computed from your actual token usage.</p></div>
-    <div class="card"><div class="ico">🎚️</div><h3>Model &amp; date filters</h3><p>Slice by model — Opus, Sonnet, Haiku — and by range: today, this week, 30d, 90d, all time.</p></div>
-    <div class="card"><div class="ico">♻️</div><h3>Auto-refresh</h3><p>Rescans every 30 seconds, incrementally — only newly appended transcript bytes are read.</p></div>
-    <div class="card"><div class="ico">⚙️</div><h3>Native SwiftUI</h3><p>A small, fast, native macOS app — no Electron, no background daemon.</p></div>
+    <div class="card"><div class="ico">🔒</div><h3><span class="en">Local &amp; private</span><span class="fr">Local et privé</span><span class="zh">本機且私密</span></h3><p><span class="en">Reads your local transcripts only. Nothing is ever uploaded — the app has no network calls beyond checking for its own updates.</span><span class="fr">Lit uniquement vos transcripts locaux. Rien n'est jamais envoyé — l'app ne fait aucun appel réseau au-delà de la vérification de ses propres mises à jour.</span><span class="zh">只讀取你本機的 transcript。任何資料都不會上傳——除了檢查自身更新之外，這個應用程式沒有任何網路連線。</span></p></div>
+    <div class="card"><div class="ico">📈</div><h3><span class="en">Daily usage chart</span><span class="fr">Graphique d'usage quotidien</span><span class="zh">每日用量圖表</span></h3><p><span class="en">A stacked chart of input, output, cache read and cache creation tokens, per day.</span><span class="fr">Un graphique empilé des tokens d'entrée, de sortie, de lecture et de création de cache, par jour.</span><span class="zh">以堆疊圖呈現每日的輸入、輸出、快取讀取與快取建立 token。</span></p></div>
+    <div class="card"><div class="ico">🧮</div><h3><span class="en">Estimated cost</span><span class="fr">Coût estimé</span><span class="zh">估計成本</span></h3><p><span class="en">Approximate USD cost per model family, computed from your actual token usage.</span><span class="fr">Coût approximatif en USD par famille de modèle, calculé à partir de votre usage réel de tokens.</span><span class="zh">依模型家族估算的美元成本，根據你實際的 token 用量計算。</span></p></div>
+    <div class="card"><div class="ico">🎚️</div><h3><span class="en">Model &amp; date filters</span><span class="fr">Filtres par modèle et par date</span><span class="zh">模型與日期篩選</span></h3><p><span class="en">Slice by model — Opus, Sonnet, Haiku — and by range: today, this week, 30d, 90d, all time.</span><span class="fr">Découpez par modèle — Opus, Sonnet, Haiku — et par période : aujourd'hui, cette semaine, 30 j, 90 j, depuis le début.</span><span class="zh">依模型切分——Opus、Sonnet、Haiku——也可依範圍切分：今天、本週、30 天、90 天、全部。</span></p></div>
+    <div class="card"><div class="ico">♻️</div><h3><span class="en">Auto-refresh</span><span class="fr">Rafraîchissement automatique</span><span class="zh">自動更新</span></h3><p><span class="en">Rescans every 30 seconds, incrementally — only newly appended transcript bytes are read.</span><span class="fr">Rescanne toutes les 30 secondes, de façon incrémentale — seuls les octets ajoutés aux transcripts sont relus.</span><span class="zh">每 30 秒增量重新掃描——只讀取 transcript 新追加的位元組。</span></p></div>
+    <div class="card"><div class="ico">⚙️</div><h3><span class="en">Native SwiftUI</span><span class="fr">SwiftUI natif</span><span class="zh">原生 SwiftUI</span></h3><p><span class="en">A small, fast, native macOS app — no Electron, no background daemon.</span><span class="fr">Une app macOS native, petite et rapide — sans Electron, sans démon en arrière-plan.</span><span class="zh">小巧快速的原生 macOS 應用程式——不用 Electron，也沒有背景常駐程式。</span></p></div>
   </div>
 </div></section>
 
 <section id="screenshots"><div class="wrap">
   <div class="center">
-    <p class="eyebrow">## screenshots</p>
-    <h2>What you actually see</h2>
-    <p class="lead">The real dashboard — sessions and cost trends, automatic insights, model mix, and the daily usage chart — plus the editable pricing sheet.</p>
+    <p class="eyebrow"><span class="en">## screenshots</span><span class="fr">## captures</span><span class="zh">## 畫面</span></p>
+    <h2><span class="en">What you actually see</span><span class="fr">Ce que vous voyez vraiment</span><span class="zh">你實際會看到的畫面</span></h2>
+    <p class="lead"><span class="en">The real dashboard — sessions and cost trends, automatic insights, model mix, and the daily usage chart — plus the editable pricing sheet.</span><span class="fr">Le vrai tableau de bord — tendances de sessions et de coût, insights automatiques, répartition par modèle et graphique d'usage quotidien — plus la feuille de tarifs éditable.</span><span class="zh">真實的儀表板——工作階段與成本趨勢、自動洞察、模型組成，以及每日用量圖表——外加可編輯的費率表。</span></p>
   </div>
   <div class="shots">
     <figure class="shot">
       <img src="screenshots/dashboard.png" alt="ClaudeCodeUsage dashboard: stat cards, sessions-per-week and cost-per-hour trend charts, an Insights &amp; Alerts panel, a model-mix bar, and the daily token usage chart" loading="lazy">
-      <figcaption>Stat cards, sessions/cost trend charts, automatic insights, model mix, and the daily usage chart.</figcaption>
+      <figcaption><span class="en">Stat cards, sessions/cost trend charts, automatic insights, model mix, and the daily usage chart.</span><span class="fr">Cartes de statistiques, courbes de sessions et de coût, insights automatiques, répartition par modèle et graphique d'usage quotidien.</span><span class="zh">統計卡片、工作階段與成本趨勢圖、自動洞察、模型組成，以及每日用量圖表。</span></figcaption>
     </figure>
     <figure class="shot">
       <img src="screenshots/pricing.png" alt="ClaudeCodeUsage Pricing sheet: an editable rate table for Opus, Sonnet, Haiku and Fable" loading="lazy">
-      <figcaption>Editable per-model-family pricing — Est. Cost updates everywhere immediately.</figcaption>
+      <figcaption><span class="en">Editable per-model-family pricing — Est. Cost updates everywhere immediately.</span><span class="fr">Tarifs éditables par famille de modèle — le coût estimé se met à jour partout immédiatement.</span><span class="zh">可依模型家族編輯費率——估計成本會立即在各處更新。</span></figcaption>
     </figure>
   </div>
 </div></section>
@@ -210,47 +222,75 @@
 <section id="why"><div class="wrap">
   <div class="why">
     <div>
-      <p class="eyebrow">// why it exists</p>
-      <h2 style="text-align:left">Numbers Claude Code already has, finally visible</h2>
-      <p class="lead">Claude Code logs token usage on every turn, but there's no built-in way to see the totals. ClaudeCodeUsage sits read-only on top of those transcripts — across every local project — so your sessions, tokens and estimated spend become a single glanceable dashboard.</p>
+      <p class="eyebrow"><span class="en">// why it exists</span><span class="fr">// pourquoi elle existe</span><span class="zh">// 為什麼有這個工具</span></p>
+      <h2 style="text-align:left"><span class="en">Numbers Claude Code already has, finally visible</span><span class="fr">Des chiffres que Claude Code a déjà, enfin visibles</span><span class="zh">Claude Code 早就有的數字，終於看得見</span></h2>
+      <p class="lead"><span class="en">Claude Code logs token usage on every turn, but there's no built-in way to see the totals. ClaudeCodeUsage sits read-only on top of those transcripts — across every local project — so your sessions, tokens and estimated spend become a single glanceable dashboard.</span><span class="fr">Claude Code enregistre l'usage de tokens à chaque tour, mais rien n'est prévu pour en voir les totaux. ClaudeCodeUsage se pose en lecture seule au-dessus de ces transcripts — sur tous vos projets locaux — pour réunir sessions, tokens et dépense estimée dans un seul tableau de bord.</span><span class="zh">Claude Code 每一輪都會記錄 token 用量，卻沒有內建的方式看到總計。ClaudeCodeUsage 以唯讀方式架在這些 transcript 之上——涵蓋所有本機專案——把工作階段、token 與估計花費彙整成單一、一眼可讀的儀表板。</span></p>
     </div>
     <div class="stats">
-      <div class="stat"><div class="k">Read-only</div><div class="v">Never writes to Claude Code's data</div></div>
-      <div class="stat"><div class="k">All projects</div><div class="v">Aggregates usage across every local repo</div></div>
-      <div class="stat"><div class="k">Incremental</div><div class="v">Only re-reads appended transcript bytes</div></div>
-      <div class="stat"><div class="k">Native</div><div class="v">SwiftUI + Swift Charts</div></div>
+      <div class="stat"><div class="k"><span class="en">Read-only</span><span class="fr">Lecture seule</span><span class="zh">唯讀</span></div><div class="v"><span class="en">Never writes to Claude Code's data</span><span class="fr">N'écrit jamais dans les données de Claude Code</span><span class="zh">永不寫入 Claude Code 的資料</span></div></div>
+      <div class="stat"><div class="k"><span class="en">All projects</span><span class="fr">Tous les projets</span><span class="zh">所有專案</span></div><div class="v"><span class="en">Aggregates usage across every local repo</span><span class="fr">Agrège l'usage de tous les repos locaux</span><span class="zh">彙整所有本機版本庫的用量</span></div></div>
+      <div class="stat"><div class="k"><span class="en">Incremental</span><span class="fr">Incrémental</span><span class="zh">增量</span></div><div class="v"><span class="en">Only re-reads appended transcript bytes</span><span class="fr">Ne relit que les octets ajoutés aux transcripts</span><span class="zh">只重讀 transcript 新追加的位元組</span></div></div>
+      <div class="stat"><div class="k"><span class="en">Native</span><span class="fr">Natif</span><span class="zh">原生</span></div><div class="v"><span class="en">SwiftUI + Swift Charts</span><span class="fr">SwiftUI + Swift Charts</span><span class="zh">SwiftUI + Swift Charts</span></div></div>
     </div>
   </div>
 </div></section>
 
 <section id="install"><div class="wrap">
   <div class="center">
-    <p class="eyebrow">get started</p>
-    <h2>Up and running in a minute</h2>
-    <p class="lead">ClaudeCodeUsage reads the transcripts Claude Code already writes locally — there's nothing else to configure.</p>
+    <p class="eyebrow"><span class="en">get started</span><span class="fr">démarrer</span><span class="zh">開始使用</span></p>
+    <h2><span class="en">Up and running in a minute</span><span class="fr">Opérationnel en une minute</span><span class="zh">一分鐘內開始使用</span></h2>
+    <p class="lead"><span class="en">ClaudeCodeUsage reads the transcripts Claude Code already writes locally — there's nothing else to configure.</span><span class="fr">ClaudeCodeUsage lit les transcripts que Claude Code écrit déjà en local — il n'y a rien d'autre à configurer.</span><span class="zh">ClaudeCodeUsage 讀取 Claude Code 本來就會寫在本機的 transcript——沒有別的要設定。</span></p>
   </div>
   <div class="steps">
-    <div class="step"><h3>Have Claude Code installed</h3><p>ClaudeCodeUsage visualizes its local usage data, so use Claude Code at least once first.</p></div>
-    <div class="step"><h3>Download &amp; install</h3><p>Grab the latest <code>.dmg</code> and drag <code>ClaudeCodeUsage.app</code> into <code>/Applications</code>.</p></div>
-    <div class="step"><h3>Launch</h3><p>Open it — your usage dashboard populates from your local transcripts within a few seconds.</p></div>
+    <div class="step"><h3><span class="en">Have Claude Code installed</span><span class="fr">Avoir Claude Code installé</span><span class="zh">先安裝 Claude Code</span></h3><p><span class="en">ClaudeCodeUsage visualizes its local usage data, so use Claude Code at least once first.</span><span class="fr">ClaudeCodeUsage visualise ses données d'usage locales : utilisez Claude Code au moins une fois d'abord.</span><span class="zh">ClaudeCodeUsage 視覺化的是它在本機的用量資料，所以請先至少使用一次 Claude Code。</span></p></div>
+    <div class="step"><h3><span class="en">Download &amp; install</span><span class="fr">Télécharger et installer</span><span class="zh">下載並安裝</span></h3><p><span class="en">Grab the latest <code>.dmg</code> and drag <code>ClaudeCodeUsage.app</code> into <code>/Applications</code>.</span><span class="fr">Récupérez le dernier <code>.dmg</code> et glissez <code>ClaudeCodeUsage.app</code> dans <code>/Applications</code>.</span><span class="zh">取得最新的 <code>.dmg</code>，把 <code>ClaudeCodeUsage.app</code> 拖入 <code>/Applications</code>。</span></p></div>
+    <div class="step"><h3><span class="en">Launch</span><span class="fr">Lancer</span><span class="zh">啟動</span></h3><p><span class="en">Open it — your usage dashboard populates from your local transcripts within a few seconds.</span><span class="fr">Ouvrez-la — votre tableau de bord se remplit depuis vos transcripts locaux en quelques secondes.</span><span class="zh">開啟它——幾秒內就會從你本機的 transcript 填滿用量儀表板。</span></p></div>
   </div>
 </div></section>
 
 <section class="final"><div class="wrap">
-  <p class="eyebrow">ready?</p>
-  <h2>See what Claude Code is really costing you</h2>
-  <p class="lead" style="margin:0 auto 6px">Free, open-source and native. macOS 14 Sonoma or later.</p>
+  <p class="eyebrow"><span class="en">ready?</span><span class="fr">prêt ?</span><span class="zh">準備好了嗎？</span></p>
+  <h2><span class="en">See what Claude Code is really costing you</span><span class="fr">Voyez ce que Claude Code vous coûte vraiment</span><span class="zh">看看 Claude Code 到底花了你多少</span></h2>
+  <p class="lead" style="margin:0 auto 6px"><span class="en">Free, open-source and native. macOS 14 Sonoma or later.</span><span class="fr">Gratuite, open source et native. macOS 14 Sonoma ou ultérieur.</span><span class="zh">免費、開源、原生。macOS 14 Sonoma 或以上版本。</span></p>
   <div class="cta">
-    <a class="btn btn-primary" href="https://github.com/vincentlauriat/ClaudeCodeUsage/releases/latest">⬇︎ Download for macOS</a>
-    <a class="btn btn-ghost" href="https://github.com/vincentlauriat/ClaudeCodeUsage#readme">Read the docs</a>
+    <a class="btn btn-primary" href="https://github.com/vincentlauriat/ClaudeCodeUsage/releases/latest">⬇︎ <span class="en">Download for macOS</span><span class="fr">Télécharger pour macOS</span><span class="zh">下載 macOS 版</span></a>
+    <a class="btn btn-ghost" href="https://github.com/vincentlauriat/ClaudeCodeUsage#readme"><span class="en">Read the docs</span><span class="fr">Lire la doc</span><span class="zh">閱讀說明文件</span></a>
   </div>
 </div></section>
 
 <footer><div class="wrap">
-  ClaudeCodeUsage · MIT License · © 2026 Vincent Lauriat ·
+  ClaudeCodeUsage · <span class="en">MIT License</span><span class="fr">Licence MIT</span><span class="zh">MIT 授權</span> · © 2026 Vincent Lauriat ·
   <a href="https://github.com/vincentlauriat/ClaudeCodeUsage">github.com/vincentlauriat/ClaudeCodeUsage</a>
   · <a href="https://lauriat.fr/outils/claudecodeusage/">lauriat.fr</a>
 </div></footer>
 
+<script>
+  /* zh-Hant et non zh : sur un système configuré en chinois simplifié, un
+     simple `zh` laisse le navigateur choisir une fonte Han simplifiée, qui
+     rend certains caractères traditionnels dans la mauvaise forme. */
+  var LANG_TAG={en:'en',fr:'fr',zh:'zh-Hant'};
+  function setLang(l){
+    if(!LANG_TAG[l]) l='en';
+    document.body.classList.remove('lang-en','lang-fr','lang-zh');
+    document.body.classList.add('lang-'+l);
+    document.documentElement.lang=LANG_TAG[l];
+    /* On boucle sur les boutons au lieu de les nommer un par un : ajouter une
+       4e langue ne demandera alors aucune retouche de ce script. */
+    document.querySelectorAll('.langtog button').forEach(function(b){
+      var on=b.dataset.lang===l;
+      b.classList.toggle('on',on);
+      b.setAttribute('aria-pressed',on?'true':'false');
+    });
+    try{localStorage.setItem('vl-lang',l)}catch(e){}
+  }
+  (function(){
+    var saved;try{saved=localStorage.getItem('vl-lang')}catch(e){}
+    var n=(navigator.language||'en').slice(0,2).toLowerCase();
+    /* Le traditionnel est servi a tout visiteur sinophone, y compris zh-CN :
+       c'est la seule variante chinoise disponible, et la renvoyer vaut mieux
+       que de rabattre ce visiteur sur l'anglais. */
+    setLang(saved||(n==='zh'?'zh':(n==='fr'?'fr':'en')));
+  })();
+</script>
 </body>
 </html>
