@@ -189,6 +189,13 @@ manquant échoue en quelques secondes plutôt qu'après 5 minutes de notarisatio
   `appcast.xml`.** Sparkle compare `CFBundleVersion`, pas la version marketing — ne bumper que
   `MARKETING_VERSION` publierait un flux qui ne propose la mise à jour à personne. Ce contrôle
   s'applique même avec `PUBLISH=0`, puisque l'appcast est écrit dans tous les cas.
+- **La clé de signature Sparkle est dans le trousseau _et_ correspond à celle embarquée par
+  l'app** — le script compare `generate_keys -p` au `SUPublicEDKey` de l'`Info.plist`. Une clé
+  absente interrompt avant le build (`PUBLISH=0` dégrade en avertissement et saute entièrement
+  l'étape appcast) ; une clé _différente_ interrompt toujours, car signer avec elle produirait un
+  flux que toutes les installations existantes rejettent. Ajouté après la 1.3.1, où la clé avait
+  disparu du trousseau et où le script ne s'en est aperçu qu'à l'étape 9, après cinq minutes de
+  notarisation réussie.
 - `gh` installé et authentifié, et aucune release existante pour cette version.
 - Aucun tag `v<version>` résiduel, local ou sur `origin` — les releases sont taguées côté serveur
   par `gh`, donc les tags précédents n'existent en général que sur le distant.
