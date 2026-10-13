@@ -1,0 +1,348 @@
+{
+  "name": "ClaudeCodeUsage",
+  "no": "05",
+  "repo": "vincentlauriat/ClaudeCodeUsage",
+  "url": "https://vincentlauriat.github.io/ClaudeCodeUsage/",
+  "accent": "#22c55e",
+  "meta": {
+    "title": "ClaudeCodeUsage — See your Claude Code usage, live, from your Mac",
+    "description": "A native macOS dashboard that visualizes your local Claude Code usage — sessions, turns, tokens, prompt cache and estimated cost, with model and date-range filters and a daily usage chart. Free & open-source (MIT), reads local transcripts only.",
+    "favicon": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%2322c55e'/%3E%3Cpath d='M22 64 L40 46 L54 58 L78 32' stroke='white' stroke-width='8' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='78' cy='32' r='7' fill='white'/%3E%3C/svg%3E"
+  },
+  "role": {
+    "en": "Built for <b>Claude Code</b> — sessions, tokens, cache &amp; cost",
+    "fr": "Conçu pour <b>Claude Code</b> — sessions, tokens, cache et coût",
+    "zh": "專為 <b>Claude Code</b> 打造——工作階段、token、快取與成本"
+  },
+  "thesis": {
+    "en": "Your Claude Code usage, visible at a glance.",
+    "fr": "Votre usage de Claude Code, visible d'un coup d'œil.",
+    "zh": "你的 Claude Code 用量，一眼看完。"
+  },
+  "lede": {
+    "en": "Claude Code quietly writes usage data to local transcripts on every turn. ClaudeCodeUsage turns that into a dashboard you can actually read — sessions, turns, tokens, prompt cache and estimated cost, filterable by model and date range, with a daily usage chart.",
+    "fr": "Claude Code écrit discrètement des données d'usage dans des transcripts locaux à chaque tour. ClaudeCodeUsage en fait un tableau de bord réellement lisible — sessions, tours, tokens, cache de prompt et coût estimé, filtrables par modèle et par période, avec un graphique d'usage quotidien.",
+    "zh": "Claude Code 每一輪都會默默把用量寫進本機的 transcript。ClaudeCodeUsage 把這些資料變成一個真正讀得懂的儀表板——工作階段、輪次、token、prompt 快取與估計成本，可依模型與時間範圍篩選，並附每日用量圖表。"
+  },
+  "actions": [
+    {
+      "primary": true,
+      "href": "https://github.com/vincentlauriat/ClaudeCodeUsage/releases/latest",
+      "label": {
+        "en": "Download for macOS",
+        "fr": "Télécharger pour macOS",
+        "zh": "下載 macOS 版"
+      }
+    },
+    {
+      "href": "https://github.com/vincentlauriat/ClaudeCodeUsage",
+      "label": {
+        "en": "View on GitHub",
+        "fr": "Voir sur GitHub",
+        "zh": "在 GitHub 上檢視"
+      }
+    }
+  ],
+  "facts": [
+    {
+      "k": {
+        "en": "Requires",
+        "fr": "Configuration",
+        "zh": "系統需求"
+      },
+      "v": "macOS 14+"
+    },
+    {
+      "k": {
+        "en": "Privacy",
+        "fr": "Confidentialité",
+        "zh": "隱私"
+      },
+      "v": {
+        "en": "Reads local transcripts only, nothing leaves your Mac",
+        "fr": "Lit uniquement les transcripts locaux, rien ne quitte votre Mac",
+        "zh": "只讀取本機 transcript，任何資料都不會離開你的 Mac"
+      }
+    },
+    {
+      "k": {
+        "en": "Licence",
+        "fr": "Licence",
+        "zh": "授權"
+      },
+      "v": {
+        "en": "Free &amp; open-source (MIT)",
+        "fr": "Gratuit et open source (MIT)",
+        "zh": "免費開源（MIT）"
+      }
+    }
+  ],
+  "hero": {
+    "src": "screenshots/dashboard.png",
+    "w": 1600,
+    "h": 950,
+    "dark": true,
+    "alt": "ClaudeCodeUsage dashboard: stat cards, sessions-per-week and cost-per-hour trend charts, an Insights & Alerts panel, a model-mix bar, and the daily token usage chart",
+    "caption": {
+      "en": "Stat cards, sessions/cost trend charts, automatic insights, model mix, and the daily usage chart.",
+      "fr": "Cartes de statistiques, courbes de sessions et de coût, insights automatiques, répartition par modèle et graphique d'usage quotidien.",
+      "zh": "統計卡片、工作階段與成本趨勢圖、自動洞察、模型組成，以及每日用量圖表。"
+    }
+  },
+  "opener": {
+    "h": {
+      "en": "Everything Claude Code tracks, made visible",
+      "fr": "Tout ce que Claude Code enregistre, rendu visible",
+      "zh": "把 Claude Code 記錄的一切，變成看得見的"
+    },
+    "p": {
+      "en": "A tiny native app that reads the JSONL transcripts Claude Code already writes to <code>~/.claude/projects</code>, and turns them into a dashboard.",
+      "fr": "Une petite app native qui lit les transcripts JSONL que Claude Code écrit déjà dans <code>~/.claude/projects</code>, et en fait un tableau de bord.",
+      "zh": "一個小巧的原生應用程式，讀取 Claude Code 本來就會寫進 <code>~/.claude/projects</code> 的 JSONL transcript，並把它們變成儀表板。"
+    }
+  },
+  "features": [
+    {
+      "h": {
+        "en": "Local &amp; private",
+        "fr": "Local et privé",
+        "zh": "本機且私密"
+      },
+      "p": {
+        "en": "Reads your local transcripts only. Nothing is ever uploaded — the app has no network calls beyond checking for its own updates.",
+        "fr": "Lit uniquement vos transcripts locaux. Rien n'est jamais envoyé — l'app ne fait aucun appel réseau au-delà de la vérification de ses propres mises à jour.",
+        "zh": "只讀取你本機的 transcript。任何資料都不會上傳——除了檢查自身更新之外，這個應用程式沒有任何網路連線。"
+      }
+    },
+    {
+      "h": {
+        "en": "Daily usage chart",
+        "fr": "Graphique d'usage quotidien",
+        "zh": "每日用量圖表"
+      },
+      "p": {
+        "en": "A stacked chart of input, output, cache read and cache creation tokens, per day.",
+        "fr": "Un graphique empilé des tokens d'entrée, de sortie, de lecture et de création de cache, par jour.",
+        "zh": "以堆疊圖呈現每日的輸入、輸出、快取讀取與快取建立 token。"
+      }
+    },
+    {
+      "h": {
+        "en": "Estimated cost",
+        "fr": "Coût estimé",
+        "zh": "估計成本"
+      },
+      "p": {
+        "en": "Approximate USD cost per model family, computed from your actual token usage.",
+        "fr": "Coût approximatif en USD par famille de modèle, calculé à partir de votre usage réel de tokens.",
+        "zh": "依模型家族估算的美元成本，根據你實際的 token 用量計算。"
+      }
+    },
+    {
+      "h": {
+        "en": "Model &amp; date filters",
+        "fr": "Filtres par modèle et par date",
+        "zh": "模型與日期篩選"
+      },
+      "p": {
+        "en": "Slice by model — Opus, Sonnet, Haiku — and by range: today, this week, 30d, 90d, all time.",
+        "fr": "Découpez par modèle — Opus, Sonnet, Haiku — et par période : aujourd'hui, cette semaine, 30 j, 90 j, depuis le début.",
+        "zh": "依模型切分——Opus、Sonnet、Haiku——也可依範圍切分：今天、本週、30 天、90 天、全部。"
+      }
+    },
+    {
+      "h": {
+        "en": "Auto-refresh",
+        "fr": "Rafraîchissement automatique",
+        "zh": "自動更新"
+      },
+      "p": {
+        "en": "Rescans every 30 seconds, incrementally — only newly appended transcript bytes are read.",
+        "fr": "Rescanne toutes les 30 secondes, de façon incrémentale — seuls les octets ajoutés aux transcripts sont relus.",
+        "zh": "每 30 秒增量重新掃描——只讀取 transcript 新追加的位元組。"
+      }
+    },
+    {
+      "h": {
+        "en": "Native SwiftUI",
+        "fr": "SwiftUI natif",
+        "zh": "原生 SwiftUI"
+      },
+      "p": {
+        "en": "A small, fast, native macOS app — no Electron, no background daemon.",
+        "fr": "Une app macOS native, petite et rapide — sans Electron, sans démon en arrière-plan.",
+        "zh": "小巧快速的原生 macOS 應用程式——不用 Electron，也沒有背景常駐程式。"
+      }
+    }
+  ],
+  "chapters": [
+    {
+      "id": "screenshots",
+      "h": {
+        "en": "What you actually see",
+        "fr": "Ce que vous voyez vraiment",
+        "zh": "你實際會看到的畫面"
+      },
+      "p": {
+        "en": "The real dashboard — sessions and cost trends, automatic insights, model mix, and the daily usage chart — plus the editable pricing sheet.",
+        "fr": "Le vrai tableau de bord — tendances de sessions et de coût, insights automatiques, répartition par modèle et graphique d'usage quotidien — plus la feuille de tarifs éditable.",
+        "zh": "真實的儀表板——工作階段與成本趨勢、自動洞察、模型組成，以及每日用量圖表——外加可編輯的費率表。"
+      },
+      "blocks": [
+        {
+          "type": "plates",
+          "items": [
+            {
+              "src": "screenshots/pricing.png",
+              "w": 1600,
+              "h": 950,
+              "dark": true,
+              "wide": true,
+              "alt": "ClaudeCodeUsage Pricing sheet: an editable rate table for Opus, Sonnet, Haiku and Fable",
+              "caption": {
+                "en": "Editable per-model-family pricing — Est. Cost updates everywhere immediately.",
+                "fr": "Tarifs éditables par famille de modèle — le coût estimé se met à jour partout immédiatement.",
+                "zh": "可依模型家族編輯費率——估計成本會立即在各處更新。"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "why",
+      "h": {
+        "en": "Numbers Claude Code already has, finally visible",
+        "fr": "Des chiffres que Claude Code a déjà, enfin visibles",
+        "zh": "Claude Code 早就有的數字，終於看得見"
+      },
+      "p": {
+        "en": "Claude Code logs token usage on every turn, but there's no built-in way to see the totals. ClaudeCodeUsage sits read-only on top of those transcripts — across every local project — so your sessions, tokens and estimated spend become a single glanceable dashboard.",
+        "fr": "Claude Code enregistre l'usage de tokens à chaque tour, mais rien n'est prévu pour en voir les totaux. ClaudeCodeUsage se pose en lecture seule au-dessus de ces transcripts — sur tous vos projets locaux — pour réunir sessions, tokens et dépense estimée dans un seul tableau de bord.",
+        "zh": "Claude Code 每一輪都會記錄 token 用量，卻沒有內建的方式看到總計。ClaudeCodeUsage 以唯讀方式架在這些 transcript 之上——涵蓋所有本機專案——把工作階段、token 與估計花費彙整成單一、一眼可讀的儀表板。"
+      },
+      "blocks": [
+        {
+          "type": "specs",
+          "items": [
+            {
+              "h": {
+                "en": "Read-only",
+                "fr": "Lecture seule",
+                "zh": "唯讀"
+              },
+              "p": {
+                "en": "Never writes to Claude Code's data",
+                "fr": "N'écrit jamais dans les données de Claude Code",
+                "zh": "永不寫入 Claude Code 的資料"
+              }
+            },
+            {
+              "h": {
+                "en": "All projects",
+                "fr": "Tous les projets",
+                "zh": "所有專案"
+              },
+              "p": {
+                "en": "Aggregates usage across every local repo",
+                "fr": "Agrège l'usage de tous les repos locaux",
+                "zh": "彙整所有本機版本庫的用量"
+              }
+            },
+            {
+              "h": {
+                "en": "Incremental",
+                "fr": "Incrémental",
+                "zh": "增量"
+              },
+              "p": {
+                "en": "Only re-reads appended transcript bytes",
+                "fr": "Ne relit que les octets ajoutés aux transcripts",
+                "zh": "只重讀 transcript 新追加的位元組"
+              }
+            },
+            {
+              "h": {
+                "en": "Native",
+                "fr": "Natif",
+                "zh": "原生"
+              },
+              "p": "SwiftUI + Swift Charts"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "install",
+      "h": {
+        "en": "Up and running in a minute",
+        "fr": "Opérationnel en une minute",
+        "zh": "一分鐘內開始使用"
+      },
+      "p": {
+        "en": "ClaudeCodeUsage reads the transcripts Claude Code already writes locally — there's nothing else to configure.",
+        "fr": "ClaudeCodeUsage lit les transcripts que Claude Code écrit déjà en local — il n'y a rien d'autre à configurer.",
+        "zh": "ClaudeCodeUsage 讀取 Claude Code 本來就會寫在本機的 transcript——沒有別的要設定。"
+      },
+      "blocks": [
+        {
+          "type": "steps",
+          "items": [
+            {
+              "en": "<b>Have Claude Code installed.</b> ClaudeCodeUsage visualizes its local usage data, so use Claude Code at least once first.",
+              "fr": "<b>Avoir Claude Code installé.</b> ClaudeCodeUsage visualise ses données d'usage locales : utilisez Claude Code au moins une fois d'abord.",
+              "zh": "<b>先安裝 Claude Code。</b>ClaudeCodeUsage 視覺化的是它在本機的用量資料，所以請先至少使用一次 Claude Code。"
+            },
+            {
+              "en": "<b>Download &amp; install.</b> Grab the latest <code>.dmg</code> and drag <code>ClaudeCodeUsage.app</code> into <code>/Applications</code>.",
+              "fr": "<b>Télécharger et installer.</b> Récupérez le dernier <code>.dmg</code> et glissez <code>ClaudeCodeUsage.app</code> dans <code>/Applications</code>.",
+              "zh": "<b>下載並安裝。</b>取得最新的 <code>.dmg</code>，把 <code>ClaudeCodeUsage.app</code> 拖入 <code>/Applications</code>。"
+            },
+            {
+              "en": "<b>Launch.</b> Open it — your usage dashboard populates from your local transcripts within a few seconds.",
+              "fr": "<b>Lancer.</b> Ouvrez-la — votre tableau de bord se remplit depuis vos transcripts locaux en quelques secondes.",
+              "zh": "<b>啟動。</b>開啟它——幾秒內就會從你本機的 transcript 填滿用量儀表板。"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "close": {
+    "h": {
+      "en": "See what Claude Code is really costing you",
+      "fr": "Voyez ce que Claude Code vous coûte vraiment",
+      "zh": "看看 Claude Code 到底花了你多少"
+    },
+    "p": {
+      "en": "Free, open-source and native. macOS 14 Sonoma or later.",
+      "fr": "Gratuite, open source et native. macOS 14 Sonoma ou ultérieur.",
+      "zh": "免費、開源、原生。macOS 14 Sonoma 或以上版本。"
+    },
+    "actions": [
+      {
+        "primary": true,
+        "href": "https://github.com/vincentlauriat/ClaudeCodeUsage/releases/latest",
+        "label": {
+          "en": "Download for macOS",
+          "fr": "Télécharger pour macOS",
+          "zh": "下載 macOS 版"
+        }
+      },
+      {
+        "href": "https://github.com/vincentlauriat/ClaudeCodeUsage#readme",
+        "label": {
+          "en": "Read the docs",
+          "fr": "Lire la doc",
+          "zh": "閱讀說明文件"
+        }
+      }
+    ]
+  },
+  "colophon": {
+    "notes": [
+      "<a href=\"https://lauriat.fr/outils/claudecodeusage/\">lauriat.fr</a>"
+    ]
+  }
+}
